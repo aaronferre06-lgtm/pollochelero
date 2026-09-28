@@ -76,6 +76,15 @@ details[open] summary::after{content:"–"}
 @media (max-width:880px){.preview{position:static}}
 .frame{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
 .frame img{display:block;width:100%;height:auto;border-radius:6px;max-height:72vh;object-fit:contain}
+.items{display:flex;flex-direction:column;gap:8px}
+.items-head{display:grid;grid-template-columns:minmax(0,1fr) 112px 40px;gap:8px;font-weight:700;font-size:16px}
+.items-head span:nth-child(2){color:var(--muted);font-size:14px;font-weight:600;align-self:end}
+.rows{display:flex;flex-direction:column;gap:8px}
+.irow{display:grid;grid-template-columns:minmax(0,1fr) 112px 40px;gap:8px;align-items:center}
+.irow .money{padding-left:10px}
+.irow .money input{padding-left:6px;padding-right:8px}
+.del{padding:9px 0;width:40px;color:var(--muted);font-size:20px;line-height:1}
+.add{align-self:flex-start;border-style:dashed;color:var(--accent)}
 .note{font-size:14px;color:var(--muted);margin:0;text-align:center}
 .example{font-size:14px;background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:8px 12px;margin:0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;max-width:calc(100% - 32px)}
@@ -95,13 +104,13 @@ details[open] summary::after{content:"–"}
 
   <div class="app">
     <div class="panel">
-      <p class="example" id="exampleNote">Los platos que ves son de ejemplo. Cámbienlos por el menú de hoy y pongan los precios.</p>
+      <p class="example" id="exampleNote">Los platos que ves son de ejemplo. Cámbienlos por los de hoy y pongan los precios.</p>
 
       <details class="card" id="pasteBox">
         <summary>¿Ya tienen el texto escrito? Péguenlo aquí</summary>
         <label>Mensaje de siempre
-          <span class="hint">Por ejemplo: "Menú S/ 10 · Entradas: … · Segundos: … · Refresco: …". Se reparte solo en cada casilla.</span>
-          <textarea id="pasteText" rows="6" placeholder="MENÚ S/ 10&#10;ENTRADAS&#10;Papa a la huancaína&#10;Sopa de casa&#10;SEGUNDOS&#10;Arroz con pollo&#10;Chicharrón de pescado - 13&#10;Refresco: chicha morada"></textarea>
+          <span class="hint">Pongan "Entradas" y "Segundos" como títulos y, si un plato tiene precio aparte, al final de la línea. Se reparte solo en cada casilla.</span>
+          <textarea id="pasteText" rows="6" placeholder="MENÚ S/ 10&#10;ENTRADAS&#10;Papa a la huancaína 4&#10;Sopa de casa 3&#10;SEGUNDOS&#10;Arroz con pollo 12&#10;Chicharrón de pescado 15&#10;Refresco: chicha morada"></textarea>
         </label>
         <button type="button" id="pasteBtn">Ordenar en el menú</button>
       </details>
@@ -115,18 +124,21 @@ details[open] summary::after{content:"–"}
               <button type="button" id="todayBtn">Hoy</button>
             </div>
           </label>
-          <label for="price">Precio del menú
-            <div class="money"><span>S/</span><input type="text" inputmode="decimal" id="price" autocomplete="off" placeholder="Precio"></div>
+          <label for="price">Precio del menú completo
+            <div class="money"><span>S/</span><input type="text" inputmode="decimal" id="price" autocomplete="off" placeholder="10"></div>
           </label>
         </div>
-        <label for="entradas">Entradas
-          <span class="hint">Una por línea.</span>
-          <textarea id="entradas" rows="4"></textarea>
-        </label>
-        <label for="segundos">Segundos
-          <span class="hint">Uno por línea. Si un plato cuesta distinto, pon el precio al final: <b>Chicharrón de pescado - 13</b></span>
-          <textarea id="segundos" rows="6"></textarea>
-        </label>
+        <p class="hint" style="margin:0">Cada plato tiene su casilla de precio para cuando se vende aparte o cuesta distinto. Si la dejan vacía, ese plato entra en el precio del menú.</p>
+        <div class="items">
+          <div class="items-head"><span>Entradas</span><span>Precio</span></div>
+          <div class="rows" id="rows-entradas"></div>
+          <button type="button" class="add" data-sec="entradas">+ Agregar entrada</button>
+        </div>
+        <div class="items">
+          <div class="items-head"><span>Segundos</span><span>Precio</span></div>
+          <div class="rows" id="rows-segundos"></div>
+          <button type="button" class="add" data-sec="segundos">+ Agregar segundo</button>
+        </div>
         <label for="refresco">Refresco
           <input type="text" id="refresco" autocomplete="off">
         </label>
@@ -185,7 +197,7 @@ details[open] summary::after{content:"–"}
   const TAU = Math.PI*2;
   const KEY = 'pizarra-menu-v2';
   const DEF = {
-    name:'El Pollo Chelero', price:'',
+    name:'El Pollo Chelero', price:'10',
     entradas:'Papa a la huancaína\nSopa de casa\nCeviche de pota',
     segundos:'Arroz con pollo\nSeco de res con frejoles\nAjí de gallina\nTallarín saltado\nChicharrón de pescado',
     refresco:'Chicha morada',
@@ -197,8 +209,37 @@ details[open] summary::after{content:"–"}
   if(!['carbon','crema'].includes(st.style)) st.style = 'carbon';
   st.date = todayText();
 
-  const fields = ['name','date','price','entradas','segundos','refresco','nota'];
+  const fields = ['name','date','price','refresco','nota'];
   fields.forEach(f => { $(f).value = st[f] || ''; });
+
+  /* ---------- dish rows (name + price) ---------- */
+  function addRow(sec, name, price, focus){
+    const box = $('rows-'+sec), i = box.children.length + 1;
+    const row = document.createElement('div'); row.className = 'irow';
+    const lab = sec === 'entradas' ? 'Entrada' : 'Segundo';
+    row.innerHTML = `<input type="text" class="iname" id="${sec}-n-${Date.now()}-${i}" autocomplete="off" placeholder="${lab}" aria-label="${lab} ${i}">`+
+      `<div class="money"><span>S/</span><input type="text" class="iprice" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="Precio ${lab.toLowerCase()} ${i}"></div>`+
+      `<button type="button" class="del" aria-label="Quitar ${lab.toLowerCase()} ${i}">×</button>`;
+    row.querySelector('.iname').value = name || '';
+    row.querySelector('.iprice').value = price || '';
+    row.querySelectorAll('input').forEach(x => x.addEventListener('input', onInput));
+    row.querySelector('.del').addEventListener('click', () => { row.remove(); onInput(); });
+    box.appendChild(row);
+    if(focus) row.querySelector('.iname').focus();
+  }
+  function setRows(sec, text){
+    $('rows-'+sec).innerHTML = '';
+    const ls = lines(text); ls.forEach(l => { const p = splitPrice(l); addRow(sec, p.name, p.price); });
+    if(!ls.length) addRow(sec, '', '');
+  }
+  function readRows(sec){
+    return [...$('rows-'+sec).querySelectorAll('.irow')].map(r => {
+      const n = r.querySelector('.iname').value.trim(), p = money(r.querySelector('.iprice').value);
+      return n ? (p ? `${n} - ${p}` : n) : '';
+    }).filter(Boolean).join('\n');
+  }
+  document.querySelectorAll('.add').forEach(b => b.addEventListener('click', () => addRow(b.dataset.sec, '', '', true)));
+  setRows('entradas', st.entradas); setRows('segundos', st.segundos);
 
   function todayText(){
     try{
@@ -240,10 +281,10 @@ details[open] summary::after{content:"–"}
       if(sec==='e') e.push(l); else if(sec==='s') s.push(l);
     });
     if(!e.length && !s.length){ toast('No encontré "Entradas" ni "Segundos". Escribe esas palabras como títulos.'); return; }
-    if(e.length) $('entradas').value = e.join('\n');
-    if(s.length) $('segundos').value = s.join('\n');
-    if(refresco) $('refresco').value = refresco;
+    if(e.length) setRows('entradas', e.join('\n'));
+    if(s.length) setRows('segundos', s.join('\n'));
     if(price) $('price').value = money(price);
+    if(refresco) $('refresco').value = refresco;
     onInput(); toast('Listo, ya está en el menú.'); $('pasteBox').open = false;
   });
 
@@ -549,6 +590,7 @@ details[open] summary::after{content:"–"}
   let tmr;
   function onInput(){
     fields.forEach(f => { st[f] = $(f).value; });
+    st.entradas = readRows('entradas'); st.segundos = readRows('segundos');
     st.edited = true; $('exampleNote').hidden = true;
     save(); clearTimeout(tmr); tmr = setTimeout(render, 120);
   }
