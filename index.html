@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#B3261E">
+<title>Menú del día · El Pollo Chelero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Caveat+Brush&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{
+  --bg:#F4F1EC; --surface:#FFFFFF; --surface-2:#F8F4EE; --ink:#231A16; --muted:#6F625A;
+  --line:#E3D9CE; --accent:#B3261E; --accent-ink:#FFFFFF; --accent-soft:#F7E1DD; --focus:#F4B400;
+  --display:"Lilita One","Arial Black",system-ui,sans-serif;
+  --body:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#161211; --surface:#211B19; --surface-2:#1B1614; --ink:#F2EAE4; --muted:#B3A59B;
+    --line:#3A302C; --accent:#E0533F; --accent-ink:#1A0F0C; --accent-soft:#3A1F1A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#161211; --surface:#211B19; --surface-2:#1B1614; --ink:#F2EAE4; --muted:#B3A59B;
+  --line:#3A302C; --accent:#E0533F; --accent-ink:#1A0F0C; --accent-soft:#3A1F1A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;padding-inline:16px;padding-block:20px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+header{display:flex;gap:16px;align-items:center}
+header img{width:84px;height:84px;flex:none}
+header h1{font-family:var(--display);font-weight:400;font-size:clamp(30px,6vw,44px);line-height:1.05;margin:0;letter-spacing:.5px;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,430px);gap:28px;align-items:start}
+@media (max-width:880px){.app{grid-template-columns:minmax(0,1fr)}}
+.panel{display:flex;flex-direction:column;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:700}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:480px){.row{grid-template-columns:minmax(0,1fr)}}
+label{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:16px}
+.hint{font-weight:500;font-size:14px;color:var(--muted)}
+input[type=text],textarea{font:inherit;font-weight:500;font-size:18px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+textarea{resize:vertical;min-height:130px;line-height:1.4}
+input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.money{display:flex;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding-left:12px}
+.money span{font-weight:700;color:var(--muted)}
+.money input{border:0;background:transparent}
+.inline{display:flex;gap:8px;align-items:stretch}
+.inline input{flex:1;min-width:0}
+button{font:inherit;font-weight:700;font-size:16px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);padding:10px 14px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-size:19px;padding:14px 18px;width:100%}
+button.primary:hover{filter:brightness(1.07)}
+.segs{display:flex;flex-wrap:wrap;gap:10px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;max-width:100%;background:var(--surface)}
+.seg button{border:0;border-radius:0;background:transparent;font-weight:600;padding:9px 14px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+details.card{gap:0}
+details.card[open]{gap:14px}
+summary{cursor:pointer;font-weight:700;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--accent);font-size:22px;line-height:1}
+details[open] summary::after{content:"–"}
+.logo-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.file-btn{position:relative;overflow:hidden}
+.file-btn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.brand{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:center}
+.brand img{width:120px;height:120px}
+.brand .col{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+@media (max-width:420px){.brand{grid-template-columns:minmax(0,1fr)}}
+.preview{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column;gap:12px}
+@media (max-width:880px){.preview{position:static}}
+.frame{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.frame img{display:block;width:100%;height:auto;border-radius:6px;max-height:72vh;object-fit:contain}
+.note{font-size:14px;color:var(--muted);margin:0;text-align:center}
+.example{font-size:14px;background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:8px 12px;margin:0}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+
+<div class="wrap">
+  <header>
+    <img id="headLogo" alt="">
+    <div>
+      <h1>Pizarra del menú</h1>
+      <p>Escriban el menú de hoy y la imagen se arma sola, con el logo y los precios. Descárguenla y mándenla por WhatsApp.</p>
+    </div>
+  </header>
+
+  <div class="app">
+    <div class="panel">
+      <p class="example" id="exampleNote">Los platos que ves son de ejemplo. Cámbienlos por el menú de hoy y pongan los precios.</p>
+
+      <details class="card" id="pasteBox">
+        <summary>¿Ya tienen el texto escrito? Péguenlo aquí</summary>
+        <label>Mensaje de siempre
+          <span class="hint">Por ejemplo: "Menú S/ 10 · Entradas: … · Segundos: … · Refresco: …". Se reparte solo en cada casilla.</span>
+          <textarea id="pasteText" rows="6" placeholder="MENÚ S/ 10&#10;ENTRADAS&#10;Papa a la huancaína&#10;Sopa de casa&#10;SEGUNDOS&#10;Arroz con pollo&#10;Chicharrón de pescado - 13&#10;Refresco: chicha morada"></textarea>
+        </label>
+        <button type="button" id="pasteBtn">Ordenar en el menú</button>
+      </details>
+
+      <section class="card" aria-labelledby="h-hoy">
+        <h2 id="h-hoy">Menú de hoy</h2>
+        <div class="row">
+          <label for="date">Fecha
+            <div class="inline">
+              <input type="text" id="date" autocomplete="off">
+              <button type="button" id="todayBtn">Hoy</button>
+            </div>
+          </label>
+          <label for="price">Precio del menú
+            <div class="money"><span>S/</span><input type="text" inputmode="decimal" id="price" autocomplete="off" placeholder="Precio"></div>
+          </label>
+        </div>
+        <label for="entradas">Entradas
+          <span class="hint">Una por línea.</span>
+          <textarea id="entradas" rows="4"></textarea>
+        </label>
+        <label for="segundos">Segundos
+          <span class="hint">Uno por línea. Si un plato cuesta distinto, pon el precio al final: <b>Chicharrón de pescado - 13</b></span>
+          <textarea id="segundos" rows="6"></textarea>
+        </label>
+        <label for="refresco">Refresco
+          <input type="text" id="refresco" autocomplete="off">
+        </label>
+      </section>
+
+      <section class="card" aria-labelledby="h-logo">
+        <h2 id="h-logo">Logo del local</h2>
+        <div class="brand">
+          <img id="logoOut" alt="Logo de El Pollo Chelero">
+          <div class="col">
+            <button type="button" id="logoDl" hidden>Descargar logo</button>
+            <span class="hint">Sirve para el perfil de WhatsApp, stickers o para mandarlo a imprimir un letrero.</span>
+          </div>
+        </div>
+      </section>
+
+      <details class="card" id="localBox">
+        <summary>Datos del local (se quedan guardados en este celular)</summary>
+        <label for="name">Nombre del restaurante
+          <input type="text" id="name" autocomplete="off">
+        </label>
+        <div class="logo-row">
+          <span class="file-btn"><button type="button" tabindex="-1">Usar otro logo</button><input type="file" id="logoFile" accept="image/*" aria-label="Usar otro logo"></span>
+          <button type="button" id="logoClear" hidden>Volver al pollito</button>
+          <span class="hint" id="logoHint">Si tienen un logo propio, súbanlo aquí y reemplaza al pollito.</span>
+        </div>
+        <label for="nota">Pie de la imagen
+          <span class="hint">Número de pedidos, dirección o lo que quieran que siempre salga.</span>
+          <input type="text" id="nota" autocomplete="off">
+        </label>
+      </details>
+    </div>
+
+    <aside class="preview" aria-label="Vista previa">
+      <div class="segs">
+        <div class="seg" role="group" aria-label="Estilo">
+          <button type="button" data-key="style" data-val="clasico">Clásico</button>
+          <button type="button" data-key="style" data-val="pizarra">Pizarra</button>
+        </div>
+        <div class="seg" role="group" aria-label="Formato">
+          <button type="button" data-key="fmt" data-val="post">Para chat</button>
+          <button type="button" data-key="fmt" data-val="story">Para estado</button>
+        </div>
+      </div>
+      <div class="frame"><img id="out" alt="Imagen del menú del día"></div>
+      <button type="button" class="primary" id="dlBtn" hidden>Descargar imagen del menú</button>
+      <p class="note" id="saveHint">En el celular: mantén presionada la imagen y elige "Guardar imagen".</p>
+    </aside>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const TAU = Math.PI*2;
+  const KEY = 'pizarra-menu-v2';
+  const DEF = {
+    name:'El Pollo Chelero', price:'',
+    entradas:'Papa a la huancaína\nSopa de casa\nCeviche de pota',
+    segundos:'Arroz con pollo\nSeco de res con frejoles\nAjí de gallina\nTallarín saltado\nChicharrón de pescado',
+    refresco:'Chicha morada',
+    nota:'Pedidos y delivery por WhatsApp',
+    logo:'', fmt:'post', style:'clasico', edited:false
+  };
+  let st = Object.assign({}, DEF);
+  try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(s) st = Object.assign(st, s); }catch(e){}
+  st.date = todayText();
+
+  const fields = ['name','date','price','entradas','segundos','refresco','nota'];
+  fields.forEach(f => { $(f).value = st[f] || ''; });
+
+  function todayText(){
+    try{
+      const t = new Intl.DateTimeFormat('es-PE',{weekday:'long',day:'numeric',month:'long'}).format(new Date()).replace(',','');
+      return t.charAt(0).toUpperCase()+t.slice(1);
+    }catch(e){ return ''; }
+  }
+  function save(){ try{ const c = Object.assign({}, st); delete c.date; localStorage.setItem(KEY, JSON.stringify(c)); }catch(e){} }
+  function toast(msg){ const t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>{t.hidden=true},3200); }
+
+  /* ---------- text helpers ---------- */
+  function splitPrice(line){
+    const s = line.trim();
+    let m = s.match(/^(.*?\S)\s*[-–:]?\s*s\/\.?\s*(\d{1,3}(?:[.,]\d{1,2})?)$/i);
+    if(!m){ m = s.match(/^(.*?[^\s\/])\s*[-–:]?\s+(\d{1,3}(?:[.,]\d{1,2})?)$/); }
+    if(m && !/\/$/.test(m[1])) return {name:m[1].replace(/[\s\-–:]+$/,''), price:m[2].replace(',','.')};
+    return {name:s, price:''};
+  }
+  function lines(t){ return (t||'').split('\n').map(x=>x.replace(/^[\s\-•*·]+/,'').trim()).filter(Boolean); }
+  function money(p){
+    p = String(p||'').replace(',','.').replace(/[^\d.]/g,'');
+    if(!p) return ''; const n = parseFloat(p); if(isNaN(n)) return '';
+    return Number.isInteger(n) ? String(n) : n.toFixed(2);
+  }
+
+  /* ---------- paste parser ---------- */
+  $('pasteBtn').addEventListener('click', () => {
+    const raw = $('pasteText').value;
+    if(!raw.trim()){ toast('Pega primero el texto del menú.'); return; }
+    let sec = null; const e=[], s=[]; let refresco = null, price = null;
+    raw.split('\n').forEach(l0 => {
+      let l = l0.replace(/[*_~]/g,'').replace(/^[\s\-•·\d.)]+(?=\D)/,'').trim();
+      if(!l) return;
+      const after = l.includes(':') ? l.slice(l.indexOf(':')+1).trim() : '';
+      if(/^entradas?\b/i.test(l)){ sec='e'; if(after) after.split(/,|\s\/\s/).forEach(x=>x.trim()&&e.push(x.trim())); return; }
+      if(/^(segundos?|fondos?|platos? de fondo)\b/i.test(l)){ sec='s'; if(after) after.split(/,|\s\/\s/).forEach(x=>x.trim()&&s.push(x.trim())); return; }
+      if(/^(refrescos?|bebidas?)\b/i.test(l)){ refresco = after || l.replace(/^(refrescos?|bebidas?)\s*/i,''); return; }
+      if(/men[uú]/i.test(l) && !sec){ const m = l.match(/(\d{1,3}(?:[.,]\d{1,2})?)/); if(m) price = m[1]; return; }
+      if(sec==='e') e.push(l); else if(sec==='s') s.push(l);
+    });
+    if(!e.length && !s.length){ toast('No encontré "Entradas" ni "Segundos". Escribe esas palabras como títulos.'); return; }
+    if(e.length) $('entradas').value = e.join('\n');
+    if(s.length) $('segundos').value = s.join('\n');
+    if(refresco) $('refresco').value = refresco;
+    if(price) $('price').value = money(price);
+    onInput(); toast('Listo, ya está en el menú.'); $('pasteBox').open = false;
+  });
+
+  /* ---------- drawing ---------- */
+  const C = {red:'#B3261E', redDk:'#8E1B14', yellow:'#F4B400', carbon:'#231A16', cream:'#FFF8EC', orange:'#F28C28', flame:'#E4572E', flame2:'#F9A03F', beer:'#F5B82E'};
+  const FD = '"Lilita One","Arial Black",sans-serif';
+  const FB = '"Barlow Semi Condensed","Arial Narrow",sans-serif';
+  const FH = '"Caveat Brush","Comic Sans MS",cursive';
+  const THEMES = {
+    clasico:{bg:'#FFF6E8', band:'#B3261E', nameC:'#FFFFFF', dateC:'#FFE1A0', titleC:'#231A16', titleF:FD, titleSz:86,
+      label:'#B3261E', text:'#2A1F1A', price:'#B3261E', dots:'#B9A493', rule:'#E8D6BF', pill:'#F8E4C4', pillText:'#2A1F1A', pillVal:'#8E1B14',
+      foot:'#231A16', footA:'#F4B400', footB:'#FFFFFF', itemF:FB, itemW:600, itemSz:48, bullet:'#B3261E', trim:'#F4B400', check:'#B3261E'},
+    pizarra:{bg:'#1F2A25', band:'#6E4124', nameC:'#FFF6E8', dateC:'#F6D365', titleC:'#F3F1E7', titleF:FH, titleSz:108,
+      label:'#F6D365', text:'#F3F1E7', price:'#F6D365', dots:'rgba(243,241,231,.45)', rule:'rgba(243,241,231,.22)', pill:'rgba(246,211,101,.14)', pillText:'#F3F1E7', pillVal:'#F6D365',
+      foot:'#4E2C17', footA:'#F6D365', footB:'#FFF6E8', itemF:FH, itemW:400, itemSz:60, bullet:'#E8674F', trim:'#F6D365', check:'#B3261E'}
+  };
+  let logoImg = null;
+
+  function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function setLS(ctx, px){ if('letterSpacing' in ctx) ctx.letterSpacing = px+'px'; }
+  function fit(ctx, text, fam, weight, size, min, maxW){
+    let sz = size;
+    for(;;){ ctx.font = `${weight} ${sz}px ${fam}`; if(ctx.measureText(text).width <= maxW || sz <= min) break; sz -= 2; }
+    return sz;
+  }
+  function wrap(ctx, text, maxW){
+    const words = text.split(/\s+/); const out=[]; let cur='';
+    words.forEach(w => { const t = cur ? cur+' '+w : w; if(ctx.measureText(t).width <= maxW || !cur) cur = t; else { out.push(cur); cur = w; } });
+    if(cur) out.push(cur); return out;
+  }
+  function circle(ctx,x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,TAU); }
+  function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function flame(ctx,x,yb,w,h,col){
+    ctx.beginPath(); ctx.moveTo(x-w/2,yb);
+    ctx.bezierCurveTo(x-w/2,yb-h*0.5, x-w*0.12,yb-h*0.62, x,yb-h);
+    ctx.bezierCurveTo(x+w*0.18,yb-h*0.55, x+w/2,yb-h*0.5, x+w/2,yb);
+    ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+  }
+
+  // Mascot: a cheeky chicken with a frothy chela, sitting on the brasa
+  function drawMascot(ctx, cx, cy, R){
+    ctx.save(); ctx.translate(cx,cy); ctx.scale(R/100,R/100);
+    ctx.lineJoin='round'; ctx.lineCap='round';
+    circle(ctx,0,0,100); ctx.fillStyle=C.yellow; ctx.fill();
+    ctx.save(); circle(ctx,0,0,100); ctx.clip();
+    ctx.fillStyle='rgba(255,255,255,.22)';
+    for(let i=0;i<20;i+=2){ const a=i*TAU/20 - 0.1; ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,130,a,a+TAU/20); ctx.closePath(); ctx.fill(); }
+    [[-70,40,56],[-28,48,78],[22,44,70],[66,40,60]].forEach(f=>flame(ctx,f[0],106,f[1],f[2],C.flame));
+    [[-70,24,34],[-28,30,50],[22,26,44],[66,24,36]].forEach(f=>flame(ctx,f[0],106,f[1],f[2],C.flame2));
+    ctx.restore();
+    const K=C.carbon;
+    // comb
+    const comb=[[-28,-46,14],[-9,-57,16],[11,-50,14]];
+    ctx.strokeStyle=K; ctx.lineWidth=10; comb.forEach(c=>{circle(ctx,c[0],c[1],c[2]); ctx.stroke();});
+    ctx.fillStyle=C.red; comb.forEach(c=>{circle(ctx,c[0],c[1],c[2]); ctx.fill();});
+    // head
+    ctx.beginPath(); ctx.ellipse(-6,14,50,58,0,0,TAU); ctx.lineWidth=10; ctx.stroke(); ctx.fillStyle=C.cream; ctx.fill();
+    // beak
+    ctx.beginPath(); ctx.moveTo(34,-9); ctx.lineTo(70,3); ctx.lineTo(34,16); ctx.closePath(); ctx.lineWidth=7; ctx.stroke(); ctx.fillStyle=C.orange; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(38,4); ctx.lineTo(58,4); ctx.lineWidth=3.5; ctx.stroke();
+    // wattle
+    ctx.beginPath(); ctx.moveTo(38,14); ctx.bezierCurveTo(56,24,52,44,40,42); ctx.bezierCurveTo(28,40,28,26,34,16); ctx.closePath();
+    ctx.lineWidth=7; ctx.stroke(); ctx.fillStyle=C.red; ctx.fill();
+    // eye + brow
+    ctx.beginPath(); ctx.ellipse(12,-10,12,14,0,0,TAU); ctx.lineWidth=5; ctx.stroke(); ctx.fillStyle='#FFFFFF'; ctx.fill();
+    circle(ctx,15,-8,6.5); ctx.fillStyle=K; ctx.fill();
+    circle(ctx,17.5,-11,2.3); ctx.fillStyle='#FFFFFF'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-2,-31); ctx.quadraticCurveTo(12,-38,27,-28); ctx.lineWidth=5.5; ctx.stroke();
+    circle(ctx,-10,18,9); ctx.fillStyle='rgba(235,90,100,.45)'; ctx.fill();
+    // chela mug
+    ctx.beginPath(); ctx.arc(-88,48,13,Math.PI*0.5,Math.PI*1.5); ctx.lineWidth=13; ctx.stroke(); ctx.strokeStyle=C.beer; ctx.lineWidth=5; ctx.stroke(); ctx.strokeStyle=K;
+    roundRect(ctx,-86,24,42,52,6); ctx.lineWidth=7; ctx.stroke(); ctx.fillStyle=C.beer; ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.4)'; ctx.fillRect(-79,34,6,34);
+    ctx.fillStyle='rgba(255,255,255,.7)'; [[-62,58,2.5],[-55,46,2],[-66,44,1.8],[-58,66,2]].forEach(b=>{circle(ctx,b[0],b[1],b[2]); ctx.fill();});
+    const foam=[[-80,22,10],[-66,16,12],[-51,21,10],[-62,27,10]];
+    ctx.lineWidth=8; foam.forEach(f=>{circle(ctx,f[0],f[1],f[2]); ctx.stroke();});
+    ctx.fillStyle='#FFFFFF'; foam.forEach(f=>{circle(ctx,f[0],f[1],f[2]); ctx.fill();});
+    // wing holding the mug
+    ctx.beginPath(); ctx.ellipse(-42,50,21,13,-0.5,0,TAU); ctx.lineWidth=7; ctx.stroke(); ctx.fillStyle=C.cream; ctx.fill();
+    ctx.restore();
+  }
+
+  function arcText(ctx, text, cx, cy, r, top, sp){
+    const ws = [...text].map(ch => ctx.measureText(ch).width);
+    const total = ws.reduce((a,b)=>a+b,0) + sp*(ws.length-1);
+    let a = top ? -Math.PI/2 - total/r/2 : Math.PI/2 + total/r/2;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    [...text].forEach((ch,i) => {
+      const half = ws[i]/2/r;
+      a += top ? half : -half;
+      ctx.save(); ctx.translate(cx+r*Math.cos(a), cy+r*Math.sin(a)); ctx.rotate(top ? a+Math.PI/2 : a-Math.PI/2);
+      ctx.fillText(ch,0,0); ctx.restore();
+      a += top ? half + sp/r : -(half + sp/r);
+    });
+    ctx.textBaseline='alphabetic';
+  }
+  function star(ctx,x,y,r,col){ ctx.beginPath(); for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*0.45:r; ctx.lineTo(x+rr*Math.cos(a), y+rr*Math.sin(a)); } ctx.closePath(); ctx.fillStyle=col; ctx.fill(); }
+
+  function drawLogo(ctx, cx, cy, R, name){
+    circle(ctx,cx,cy,R); ctx.fillStyle=C.carbon; ctx.fill();
+    circle(ctx,cx,cy,R*0.955); ctx.fillStyle=C.red; ctx.fill();
+    circle(ctx,cx,cy,R*0.93); ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=R*0.01; ctx.setLineDash([R*0.02,R*0.025]); ctx.stroke(); ctx.setLineDash([]);
+    circle(ctx,cx,cy,R*0.69); ctx.fillStyle=C.carbon; ctx.fill();
+    circle(ctx,cx,cy,R*0.665); ctx.fillStyle='#FFFFFF'; ctx.fill();
+    drawMascot(ctx,cx,cy,R*0.63);
+    const topT = (name||'El Pollo Chelero').toUpperCase();
+    let sz = R*0.2; ctx.fillStyle='#FFFFFF';
+    for(;;){ ctx.font=`400 ${sz}px ${FD}`; const w=ctx.measureText(topT).width; if(w/(R*0.815) < 2.5 || sz < R*0.09) break; sz -= 2; }
+    setLS(ctx,0); arcText(ctx, topT, cx, cy, R*0.815, true, R*0.012);
+    ctx.fillStyle=C.yellow; ctx.font=`700 ${R*0.082}px ${FB}`;
+    arcText(ctx, 'MENÚ DE DÍA · POLLERÍA DE NOCHE', cx, cy, R*0.815, false, R*0.008);
+    star(ctx, cx-R*0.815, cy, R*0.055, C.yellow); star(ctx, cx+R*0.815, cy, R*0.055, C.yellow);
+  }
+
+  function bandPath(ctx,W,HB){
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(W,0); ctx.lineTo(W,HB);
+    for(let x=W; x>0; x-=270){ ctx.quadraticCurveTo(x-67.5,HB+16,x-135,HB); ctx.quadraticCurveTo(x-202.5,HB-16,x-270,HB); }
+    ctx.closePath();
+  }
+  function gingham(ctx,x,y,w,h,sq,col){
+    ctx.fillStyle='#FFFFFF'; ctx.fillRect(x,y,w,h);
+    ctx.globalAlpha=0.55; ctx.fillStyle=col;
+    for(let i=0;i*sq<w;i+=2) ctx.fillRect(x+i*sq,y,sq,h);
+    for(let j=0;j*sq<h;j+=2) ctx.fillRect(x,y+j*sq,w,sq);
+    ctx.globalAlpha=1;
+  }
+  function burst(ctx,r1,r2,n){ ctx.beginPath(); for(let i=0;i<n*2;i++){ const a=i*Math.PI/n, r=i%2?r2:r1; ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r); } ctx.closePath(); }
+
+  function paint(ctx, d, W, H, s){
+    const T = THEMES[d.style] || THEMES.clasico, chalky = d.style === 'pizarra';
+    const story = H > 1500;
+    const HB = story ? 450 : 336;
+    const FHt = story ? (d.nota ? 300 : 250) : (d.nota ? 222 : 176);
+    ctx.setTransform(1,0,0,1,0,0); setLS(ctx,0); ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    ctx.fillStyle = T.bg; ctx.fillRect(0,0,W,H);
+    const r = rng(11);
+    if(chalky){
+      for(let i=0;i<6;i++){ const g = ctx.createRadialGradient(r()*W,r()*H,0,r()*W,r()*H,300+r()*300); g.addColorStop(0,'rgba(255,255,255,.05)'); g.addColorStop(1,'rgba(255,255,255,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
+      for(let i=0;i<5000;i++){ ctx.fillStyle=`rgba(255,255,255,${0.015+r()*0.045})`; ctx.fillRect(r()*W,r()*H,1+r()*2.5,1+r()*2.5); }
+    }
+    // band
+    const LR = story ? 132 : 114, LX = 60+LR, LY = story ? 212 : 166;
+    bandPath(ctx,W,HB); ctx.fillStyle=T.band; ctx.fill();
+    ctx.save(); bandPath(ctx,W,HB); ctx.clip();
+    if(chalky){
+      for(let i=0;i<46;i++){ const y=r()*HB; ctx.strokeStyle=`rgba(0,0,0,${0.08+r()*0.12})`; ctx.lineWidth=1+r()*2.5; ctx.beginPath(); ctx.moveTo(0,y); for(let x=0;x<=W;x+=120){ ctx.quadraticCurveTo(x+60,y+(r()-.5)*10,x+120,y+(r()-.5)*6); } ctx.stroke(); }
+    }
+    ctx.fillStyle='rgba(255,255,255,.07)';
+    for(let i=0;i<32;i+=2){ const a=i*TAU/32; ctx.beginPath(); ctx.moveTo(LX,LY); ctx.arc(LX,LY,1700,a,a+TAU/32); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+    ctx.strokeStyle=T.trim; ctx.lineWidth=6;
+    ctx.beginPath(); ctx.moveTo(W,HB+16); for(let x=W; x>0; x-=270){ ctx.quadraticCurveTo(x-67.5,HB+32,x-135,HB+16); ctx.quadraticCurveTo(x-202.5,HB,x-270,HB+16); } ctx.stroke();
+
+    // logo
+    circle(ctx,LX+5,LY+8,LR+12); ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fill();
+    circle(ctx,LX,LY,LR+12); ctx.fillStyle='#FFFFFF'; ctx.fill();
+    if(logoImg){
+      ctx.save(); circle(ctx,LX,LY,LR); ctx.clip(); ctx.fillStyle='#FFFFFF'; ctx.fillRect(LX-LR,LY-LR,LR*2,LR*2);
+      const k = Math.max((LR*2)/logoImg.width,(LR*2)/logoImg.height), w = logoImg.width*k, h = logoImg.height*k;
+      ctx.drawImage(logoImg, LX-w/2, LY-h/2, w, h); ctx.restore();
+    } else drawMascot(ctx,LX,LY,LR);
+
+    // name + date
+    const NX = LX+LR+46, NW = W-NX-56;
+    ctx.textAlign='left'; ctx.fillStyle=T.nameC;
+    const nameText = d.name || 'Menú';
+    const words = nameText.split(' ');
+    let n1 = nameText, n2 = '';
+    if(words.length >= 3){ const cut = Math.ceil(words.length/2); n1 = words.slice(0,cut-1).join(' ') || words[0]; n2 = words.slice(cut-1).join(' '); if(words[0].length<=3){ n1 = words.slice(0,2).join(' '); n2 = words.slice(2).join(' '); } }
+    ctx.save(); ctx.shadowColor='rgba(0,0,0,.25)'; ctx.shadowOffsetY=4;
+    if(n2){
+      const sz1 = fit(ctx, n1, FD, 400, story?58:48, 26, NW); ctx.fillText(n1, NX, LY-40);
+      const sz2 = fit(ctx, n2, FD, 400, story?96:82, 34, NW); ctx.fillText(n2, NX, LY-40+sz2*0.95);
+      ctx.restore(); ctx.fillStyle=T.dateC; fit(ctx, d.date||'', FB, 600, story?40:34, 20, NW); ctx.fillText(d.date||'', NX, LY-40+sz2*0.95+ (story?58:50));
+    } else {
+      const nsz = fit(ctx, nameText, FD, 400, story?88:76, 34, NW); ctx.fillText(nameText, NX, LY+4);
+      ctx.restore(); ctx.fillStyle=T.dateC; fit(ctx, d.date||'', FB, 600, story?40:34, 20, NW); ctx.fillText(d.date||'', NX, LY+ nsz*0.55+26);
+    }
+
+    // title
+    const TY = HB + (story?156:128);
+    ctx.fillStyle=T.titleC; ctx.font=`400 ${story?T.titleSz*1.15:T.titleSz}px ${T.titleF}`;
+    ctx.fillText('Menú del día', 64, TY);
+
+    // price burst
+    const p = money(d.price);
+    if(p){
+      const BR = story?140:122, BX = W-66-BR, BY = HB+(story?18:12);
+      ctx.save(); ctx.translate(BX+6,BY+10); burst(ctx,BR,BR*0.86,18); ctx.fillStyle='rgba(0,0,0,.28)'; ctx.fill(); ctx.restore();
+      ctx.save(); ctx.translate(BX,BY); ctx.rotate(-0.12);
+      burst(ctx,BR,BR*0.86,18); ctx.fillStyle=C.yellow; ctx.fill(); ctx.lineWidth=5; ctx.strokeStyle=C.carbon; ctx.stroke();
+      circle(ctx,0,0,BR*0.74); ctx.strokeStyle='rgba(35,26,22,.35)'; ctx.lineWidth=3; ctx.setLineDash([8,8]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=C.carbon; ctx.textAlign='center';
+      ctx.font=`700 ${BR*0.26}px ${FB}`; ctx.fillText('S/', 0, -BR*0.36);
+      fit(ctx, p, FD, 400, BR*0.78, 30, BR*1.3); ctx.fillText(p, 0, BR*0.28);
+      setLS(ctx,1); fit(ctx, 'MENÚ COMPLETO', FB, 700, BR*0.15, 12, BR*1.2); ctx.fillText('MENÚ COMPLETO', 0, BR*0.53); setLS(ctx,0);
+      ctx.restore();
+    }
+
+    // body
+    const FT = H - FHt;
+    let y = TY + 40*s + 20;
+    const L = 70, R = W-70;
+    function section(label, items){
+      if(!items.length) return;
+      y += 30*s;
+      ctx.textAlign='left'; ctx.fillStyle=T.label; ctx.font=`700 ${Math.round(30*s)}px ${FB}`; setLS(ctx,4*s);
+      ctx.fillText(label, L, y); const lw = ctx.measureText(label).width; setLS(ctx,0);
+      ctx.strokeStyle=T.rule; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(L+lw+18, y-10*s); ctx.lineTo(R, y-10*s); ctx.stroke();
+      y += 16*s;
+      const fs = Math.round(T.itemSz*s), lh = fs*(chalky?1.12:1.2), tx = L+34*s;
+      const fItem = `${T.itemW} ${fs}px ${T.itemF}`, fPrice = `${chalky?400:700} ${fs}px ${chalky?FH:FB}`;
+      items.forEach(it => {
+        const ip = splitPrice(it);
+        let pw = 0, ptxt = '';
+        if(ip.price){ ptxt = 'S/ '+money(ip.price); ctx.font=fPrice; pw = ctx.measureText(ptxt).width; }
+        ctx.font=fItem;
+        const ls = wrap(ctx, ip.name, R - tx - (pw ? pw+60 : 0));
+        y += lh;
+        circle(ctx, L+10*s, y - fs*0.3, 7*s); ctx.fillStyle=T.bullet; ctx.fill();
+        ls.forEach((ln,i) => { if(i>0) y += lh; ctx.fillStyle=T.text; ctx.fillText(ln, tx, y); });
+        if(ptxt){
+          const endX = tx + ctx.measureText(ls[ls.length-1]).width + 14;
+          ctx.font=fPrice; ctx.fillStyle=T.price; ctx.textAlign='right'; ctx.fillText(ptxt, R, y); ctx.textAlign='left';
+          ctx.fillStyle=T.dots; for(let x=endX; x < R-pw-14; x+=14*s){ circle(ctx, x, y-8*s, 2.4*s); ctx.fill(); }
+        }
+      });
+      y += 26*s;
+    }
+    section('ENTRADAS', lines(d.entradas));
+    section('SEGUNDOS', lines(d.segundos));
+
+    if((d.refresco||'').trim()){
+      y += 26*s;
+      const fs = Math.round(38*s);
+      const lab = 'Incluye refresco: ', val = d.refresco.trim();
+      ctx.font=`600 ${fs}px ${FB}`; const w1 = ctx.measureText(lab).width;
+      ctx.font=`700 ${fs}px ${FB}`; const w2 = Math.min(ctx.measureText(val).width, R-L-w1-60);
+      const ph = fs*1.7, pw = w1+w2+56;
+      roundRect(ctx, L, y, pw, ph, ph/2); ctx.fillStyle=T.pill; ctx.fill();
+      if(chalky){ ctx.strokeStyle='rgba(246,211,101,.6)'; ctx.lineWidth=2.5; ctx.setLineDash([10,8]); ctx.stroke(); ctx.setLineDash([]); }
+      ctx.fillStyle=T.pillText; ctx.font=`600 ${fs}px ${FB}`; ctx.fillText(lab, L+28, y+ph*0.66);
+      ctx.font=`700 ${fs}px ${FB}`; ctx.fillStyle=T.pillVal; ctx.fillText(val, L+28+w1, y+ph*0.66, w2);
+      y += ph;
+    }
+
+    // footer: gingham tablecloth strip + night line
+    const SQ = story ? 28 : 24, GH = SQ*2;
+    ctx.fillStyle=T.foot; ctx.fillRect(0,FT,W,FHt);
+    gingham(ctx,0,FT,W,GH,SQ,T.check);
+    // de día MENÚ | de noche POLLERÍA
+    const top = FT + GH, colY = top + (story?78:64);
+    ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(W/2, top+22); ctx.lineTo(W/2, colY+ (story?44:34)); ctx.stroke();
+    function col(cx, icon, small, big){
+      const bs = story?62:52, ss = story?30:26;
+      ctx.font=`400 ${bs}px ${FD}`; const bw = ctx.measureText(big).width;
+      ctx.font=`600 ${ss}px ${FB}`; const sw = ctx.measureText(small).width;
+      const tw = Math.max(bw, sw), ir = story?30:25, gw = ir*2 + 22 + tw;
+      const x0 = cx - gw/2, ix = x0 + ir, iy = colY - bs*0.22;
+      if(icon==='sun'){
+        ctx.strokeStyle=T.footA; ctx.lineWidth=4; ctx.lineCap='round';
+        for(let i=0;i<8;i++){ const a=i*TAU/8; ctx.beginPath(); ctx.moveTo(ix+Math.cos(a)*ir*0.78, iy+Math.sin(a)*ir*0.78); ctx.lineTo(ix+Math.cos(a)*ir*1.12, iy+Math.sin(a)*ir*1.12); ctx.stroke(); }
+        circle(ctx,ix,iy,ir*0.55); ctx.fillStyle=T.footA; ctx.fill();
+      } else {
+        circle(ctx,ix,iy,ir); ctx.fillStyle=T.footA; ctx.fill();
+        circle(ctx,ix+ir*0.45,iy-ir*0.3,ir*0.85); ctx.fillStyle=T.foot; ctx.fill();
+        star(ctx, ix+ir*0.9, iy+ir*0.35, ir*0.28, T.footA);
+      }
+      ctx.textAlign='left';
+      const tx = x0 + ir*2 + 22;
+      ctx.fillStyle='rgba(255,255,255,.75)'; ctx.font=`600 ${ss}px ${FB}`; ctx.fillText(small, tx, colY - bs*0.62);
+      ctx.fillStyle=T.footA; ctx.font=`400 ${bs}px ${FD}`; ctx.fillText(big, tx, colY + bs*0.3);
+    }
+    col(W/4, 'sun', 'De día', 'MENÚ');
+    col(W*3/4, 'moon', 'De noche', 'POLLERÍA');
+    if(d.nota){
+      ctx.textAlign='center'; ctx.fillStyle=T.footB;
+      fit(ctx, d.nota, FB, 600, story?36:30, 18, W-120); ctx.fillText(d.nota, W/2, FT+FHt-(story?34:26));
+    }
+    return {end:y, limit:FT-36};
+  }
+
+  const cv = document.createElement('canvas');
+  const lc = document.createElement('canvas');
+  function render(){
+    const W = 1080, H = st.fmt === 'story' ? 1920 : 1350;
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    let s = st.fmt === 'story' ? 1.3 : 1.05;
+    while(s > 0.5){ const r = paint(ctx, st, W, H, s); if(r.end <= r.limit) break; s -= 0.05; }
+    $('out').src = cv.toDataURL('image/png');
+    lc.width = 1080; lc.height = 1080;
+    const lx = lc.getContext('2d'); lx.clearRect(0,0,1080,1080);
+    drawLogo(lx, 540, 540, 530, st.name);
+    const url = lc.toDataURL('image/png');
+    $('logoOut').src = url; $('headLogo').src = url;
+  }
+
+  let tmr;
+  function onInput(){
+    fields.forEach(f => { st[f] = $(f).value; });
+    st.edited = true; $('exampleNote').hidden = true;
+    save(); clearTimeout(tmr); tmr = setTimeout(render, 120);
+  }
+  fields.forEach(f => $(f).addEventListener('input', onInput));
+  $('exampleNote').hidden = !!st.edited;
+  $('todayBtn').addEventListener('click', () => { $('date').value = todayText(); onInput(); });
+
+  function syncSegs(){ document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(st[b.dataset.key] === b.dataset.val))); }
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { st[b.dataset.key] = b.dataset.val; syncSegs(); save(); render(); }));
+  syncSegs();
+
+  /* ---------- custom logo ---------- */
+  function loadLogo(src){
+    if(!src){ logoImg = null; $('logoClear').hidden = true; render(); return; }
+    const im = new Image();
+    im.onload = () => { logoImg = im; $('logoClear').hidden = false; render(); };
+    im.src = src;
+  }
+  $('logoFile').addEventListener('change', ev => {
+    const f = ev.target.files && ev.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const m = 480, k = Math.min(1, m/Math.max(im.width, im.height));
+        const c = document.createElement('canvas'); c.width = Math.round(im.width*k); c.height = Math.round(im.height*k);
+        c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+        st.logo = c.toDataURL('image/png'); save(); loadLogo(st.logo); toast('Logo listo.');
+      };
+      im.onerror = () => toast('Esa imagen no se pudo abrir. Prueba con una foto JPG o PNG.');
+      im.src = rd.result;
+    };
+    rd.readAsDataURL(f); ev.target.value = '';
+  });
+  $('logoClear').addEventListener('click', () => { st.logo=''; save(); loadLogo(''); });
+
+  /* ---------- share / download ---------- */
+  const canShareFiles = !!(navigator.canShare && window.File && (function(){ try{ return navigator.canShare({files:[new File([new Blob(['x'],{type:'image/png'})],'x.png',{type:'image/png'})]}); }catch(e){ return false; } })());
+  $('dlBtn').hidden = false; $('logoDl').hidden = false;
+  $('dlBtn').textContent = canShareFiles ? 'Enviar imagen por WhatsApp' : 'Descargar imagen del menú';
+  $('saveHint').textContent = canShareFiles ? 'Se abre el menú para compartir: elijan WhatsApp. También pueden mantener presionada la imagen para guardarla.' : 'También pueden mantener presionada la imagen para guardarla.';
+  function offer(canvas, filename, okMsg){
+    canvas.toBlob(blob => {
+      const file = new File([blob], filename, {type:'image/png'});
+      if(canShareFiles){
+        navigator.share({files:[file]}).catch(e => { if(e && e.name !== 'AbortError') plainDownload(blob, filename, okMsg); });
+      } else plainDownload(blob, filename, okMsg);
+    }, 'image/png');
+  }
+  function plainDownload(blob, filename, okMsg){
+    const u = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u), 4000); toast(okMsg);
+  }
+  $('dlBtn').addEventListener('click', () => offer(cv, `menu-${new Date().toISOString().slice(0,10)}${st.fmt==='story'?'-estado':''}.png`, 'Imagen descargada. Ya la pueden mandar por WhatsApp.'));
+  $('logoDl').addEventListener('click', () => offer(lc, 'logo-el-pollo-chelero.png', 'Logo descargado.'));
+
+  /* ---------- start ---------- */
+  if(st.logo) loadLogo(st.logo); else render();
+  const fl = document.fonts ? Promise.all([
+    document.fonts.load('70px "Lilita One"'), document.fonts.load('60px "Caveat Brush"'),
+    document.fonts.load('600 40px "Barlow Semi Condensed"'), document.fonts.load('700 40px "Barlow Semi Condensed"')
+  ]) : Promise.resolve();
+  fl.then(render, render);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+})();
+</script>
+
+</body>
+</html>
