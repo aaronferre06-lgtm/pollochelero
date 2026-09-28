@@ -85,6 +85,12 @@ details[open] summary::after{content:"–"}
 .irow .money input{padding-left:6px;padding-right:8px}
 .del{padding:9px 0;width:40px;color:var(--muted);font-size:20px;line-height:1}
 .add{align-self:flex-start;border-style:dashed;color:var(--accent)}
+.pane{display:flex;flex-direction:column;gap:18px}
+.pane[hidden]{display:none}
+.seg.mode{width:100%}
+.seg.mode button{flex:1;font-size:18px;padding:12px 10px}
+.promo-row{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:14px;align-items:end}
+@media (max-width:480px){.promo-row{grid-template-columns:minmax(0,1fr)}}
 .note{font-size:14px;color:var(--muted);margin:0;text-align:center}
 .example{font-size:14px;background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:8px 12px;margin:0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;max-width:calc(100% - 32px)}
@@ -98,14 +104,19 @@ details[open] summary::after{content:"–"}
     <img id="headLogo" alt="">
     <div>
       <h1>Pizarra del menú</h1>
-      <p>Escriban el menú de hoy y la imagen se arma sola, con el logo y los precios. Descárguenla y mándenla por WhatsApp.</p>
+      <p>Elijan menú del día o pollería, escriban los platos y precios, y la imagen se arma sola. Luego la mandan por WhatsApp.</p>
     </div>
   </header>
 
   <div class="app">
     <div class="panel">
+      <div class="seg mode" role="group" aria-label="Qué quieren armar">
+        <button type="button" data-key="mode" data-val="menu">Menú del día</button>
+        <button type="button" data-key="mode" data-val="polleria">Pollería</button>
+      </div>
       <p class="example" id="exampleNote">Los platos que ves son de ejemplo. Cámbienlos por los de hoy y pongan los precios.</p>
 
+      <div id="menuPane" class="pane">
       <details class="card" id="pasteBox">
         <summary>¿Ya tienen el texto escrito? Péguenlo aquí</summary>
         <label>Mensaje de siempre
@@ -143,6 +154,39 @@ details[open] summary::after{content:"–"}
           <input type="text" id="refresco" autocomplete="off">
         </label>
       </section>
+      </div>
+      <div id="polloPane" class="pane" hidden>
+      <section class="card" aria-labelledby="h-pollo">
+        <h2 id="h-pollo">Carta de pollería</h2>
+        <label for="horario">Horario
+          <input type="text" id="horario" autocomplete="off">
+        </label>
+        <div class="promo-row">
+          <label for="promo">Promo de la casa
+            <span class="hint">Si hoy no hay promo, déjenlo vacío.</span>
+            <input type="text" id="promo" autocomplete="off">
+          </label>
+          <label for="promoPrice">Precio de la promo
+            <div class="money"><span>S/</span><input type="text" inputmode="decimal" id="promoPrice" autocomplete="off" placeholder="0.00"></div>
+          </label>
+        </div>
+        <div class="items">
+          <div class="items-head"><span>Pollos y combos</span><span>Precio</span></div>
+          <div class="rows" id="rows-pollos"></div>
+          <button type="button" class="add" data-sec="pollos">+ Agregar pollo o combo</button>
+        </div>
+        <div class="items">
+          <div class="items-head"><span>Bebidas</span><span>Precio</span></div>
+          <div class="rows" id="rows-bebidas"></div>
+          <button type="button" class="add" data-sec="bebidas">+ Agregar bebida</button>
+        </div>
+        <div class="items">
+          <div class="items-head"><span>Extras</span><span>Precio</span></div>
+          <div class="rows" id="rows-extras"></div>
+          <button type="button" class="add" data-sec="extras">+ Agregar extra</button>
+        </div>
+      </section>
+      </div>
 
       <section class="card" aria-labelledby="h-logo">
         <h2 id="h-logo">Logo del local</h2>
@@ -202,6 +246,12 @@ details[open] summary::after{content:"–"}
     segundos:'Arroz con pollo\nSeco de res con frejoles\nAjí de gallina\nTallarín saltado\nChicharrón de pescado',
     refresco:'Chicha morada',
     nota:'Pedidos y delivery por WhatsApp',
+    horario:'Todos los días desde las 6 pm',
+    promo:'1 pollo entero + papas + ensalada + gaseosa 1.5 L', promoPrice:'',
+    pollos:[{n:'1 pollo entero + papas + ensalada',p:''},{n:'1/2 pollo + papas + ensalada',p:''},{n:'1/4 pollo + papas + ensalada',p:''},{n:'Mostrito (1/4 pollo + chaufa)',p:''}],
+    bebidas:[{n:'Gaseosa 1.5 L',p:''},{n:'Chicha morada (jarra)',p:''},{n:'Cerveza',p:''}],
+    extras:[{n:'Porción de papas',p:''},{n:'Porción de ensalada',p:''},{n:'Arroz chaufa',p:''}],
+    mode:'menu',
     logo:'', fmt:'post', style:'carbon', edited:false
   };
   let st = Object.assign({}, DEF);
@@ -209,15 +259,20 @@ details[open] summary::after{content:"–"}
   if(!['carbon','crema'].includes(st.style)) st.style = 'carbon';
   st.date = todayText();
 
-  const fields = ['name','date','price','refresco','nota'];
+  const fields = ['name','date','price','refresco','nota','horario','promo','promoPrice'];
   fields.forEach(f => { $(f).value = st[f] || ''; });
 
   /* ---------- dish rows (name + price) ---------- */
+  const SECS = ['entradas','segundos','pollos','bebidas','extras'];
+  const LAB = {entradas:'Entrada', segundos:'Segundo', pollos:'Pollo o combo', bebidas:'Bebida', extras:'Extra'};
+  function itemsOf(v){
+    if(Array.isArray(v)) return v.filter(x => x && (x.n||'').trim()).map(x => ({n:x.n.trim(), p:x.p||''}));
+    return lines(v).map(l => { const q = splitPrice(l); return {n:q.name, p:q.price}; });
+  }
   function addRow(sec, name, price, focus){
-    const box = $('rows-'+sec), i = box.children.length + 1;
+    const box = $('rows-'+sec), i = box.children.length + 1, lab = LAB[sec];
     const row = document.createElement('div'); row.className = 'irow';
-    const lab = sec === 'entradas' ? 'Entrada' : 'Segundo';
-    row.innerHTML = `<input type="text" class="iname" id="${sec}-n-${Date.now()}-${i}" autocomplete="off" placeholder="${lab}" aria-label="${lab} ${i}">`+
+    row.innerHTML = `<input type="text" class="iname" id="${sec}-n-${i}-${Math.random().toString(36).slice(2,7)}" autocomplete="off" placeholder="${lab}" aria-label="${lab} ${i}">`+
       `<div class="money"><span>S/</span><input type="text" class="iprice" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="Precio ${lab.toLowerCase()} ${i}"></div>`+
       `<button type="button" class="del" aria-label="Quitar ${lab.toLowerCase()} ${i}">×</button>`;
     row.querySelector('.iname').value = name || '';
@@ -227,19 +282,16 @@ details[open] summary::after{content:"–"}
     box.appendChild(row);
     if(focus) row.querySelector('.iname').focus();
   }
-  function setRows(sec, text){
+  function setRows(sec, v){
     $('rows-'+sec).innerHTML = '';
-    const ls = lines(text); ls.forEach(l => { const p = splitPrice(l); addRow(sec, p.name, p.price); });
-    if(!ls.length) addRow(sec, '', '');
+    const it = itemsOf(v); it.forEach(x => addRow(sec, x.n, x.p));
+    if(!it.length) addRow(sec, '', '');
   }
   function readRows(sec){
-    return [...$('rows-'+sec).querySelectorAll('.irow')].map(r => {
-      const n = r.querySelector('.iname').value.trim(), p = money(r.querySelector('.iprice').value);
-      return n ? (p ? `${n} - ${p}` : n) : '';
-    }).filter(Boolean).join('\n');
+    return [...$('rows-'+sec).querySelectorAll('.irow')].map(r => ({n:r.querySelector('.iname').value.trim(), p:money(r.querySelector('.iprice').value)})).filter(x => x.n);
   }
   document.querySelectorAll('.add').forEach(b => b.addEventListener('click', () => addRow(b.dataset.sec, '', '', true)));
-  setRows('entradas', st.entradas); setRows('segundos', st.segundos);
+  SECS.forEach(sec => setRows(sec, st[sec]));
 
   function todayText(){
     try{
@@ -317,6 +369,7 @@ details[open] summary::after{content:"–"}
   function circle(ctx,x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,TAU); }
   function star(ctx,x,y,r,col){ ctx.beginPath(); for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*0.45:r; ctx.lineTo(x+rr*Math.cos(a), y+rr*Math.sin(a)); } ctx.closePath(); ctx.fillStyle=col; ctx.fill(); }
   function diamond(ctx,x,y,r,col){ ctx.beginPath(); ctx.moveTo(x,y-r); ctx.lineTo(x+r,y); ctx.lineTo(x,y+r); ctx.lineTo(x-r,y); ctx.closePath(); ctx.fillStyle=col; ctx.fill(); }
+  function rrect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
   function glow(ctx,x,y,rad,col){ const g=ctx.createRadialGradient(x,y,0,x,y,rad); g.addColorStop(0,col); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.fillRect(x-rad,y-rad,rad*2,rad*2); }
   function arcText(ctx, text, cx, cy, r, top, sp){
     const ch = [...text]; const ws = ch.map(c => ctx.measureText(c).width);
@@ -442,7 +495,8 @@ details[open] summary::after{content:"–"}
     const T = THEMES[d.style] || THEMES.carbon, story = H > 1500;
     ctx.setTransform(1,0,0,1,0,0); setLS(ctx,0); ctx.textAlign='left'; ctx.textBaseline='alphabetic';
     ctx.fillStyle=T.bg; ctx.fillRect(0,0,W,H);
-    const u = story ? 2.1 : 1.6, ecy = story ? 318 : 222;
+    const pollo = d.mode === 'polleria';
+    const u = story ? 2.1 : (pollo ? 1.34 : 1.6), ecy = story ? 318 : (pollo ? 196 : 222);
     const r = rng(11);
     if(T.dark){
       glow(ctx, W/2, ecy, 560, 'rgba(240,113,44,.20)');
@@ -467,7 +521,7 @@ details[open] summary::after{content:"–"}
     } else drawEmblem(ctx, W/2, ecy, u, d.name);
 
     // price medallion
-    const p = money(d.price);
+    const p = pollo ? '' : money(d.price);
     if(p){
       const BR = story ? 112 : 92, BX = W - 70 - BR - (story?10:0), BY = ecy + (story?150:118);
       ctx.save(); ctx.translate(BX,BY); ctx.rotate(-0.12);
@@ -483,17 +537,19 @@ details[open] summary::after{content:"–"}
     }
 
     // title
-    let y = ecy + 100*u + (story ? 150 : 112);
+    let y = ecy + 100*u + (story ? 150 : (pollo ? 100 : 112));
     ctx.textAlign='left';
-    const tSz = story ? 150 : 112, sSz = Math.round(tSz*0.5);
-    ctx.font=`400 ${tSz}px ${FA}`; const w1 = ctx.measureText('MENÚ').width;
-    ctx.font=`italic 700 ${sSz}px ${FP}`; const w2 = ctx.measureText(' del día').width;
+    const tSz = story ? 150 : (pollo ? 100 : 112), sSz = Math.round(tSz*0.5);
+    const tBig = pollo ? 'POLLO' : 'MENÚ', tSmall = pollo ? ' a la brasa' : ' del día';
+    ctx.font=`400 ${tSz}px ${FA}`; const w1 = ctx.measureText(tBig).width;
+    ctx.font=`italic 700 ${sSz}px ${FP}`; const w2 = ctx.measureText(tSmall).width;
     const tx0 = W/2 - (w1+w2)/2;
-    ctx.fillStyle=T.title; ctx.font=`400 ${tSz}px ${FA}`; ctx.fillText('MENÚ', tx0, y);
-    ctx.fillStyle=T.accent; ctx.font=`italic 700 ${sSz}px ${FP}`; ctx.fillText(' del día', tx0+w1, y);
+    ctx.fillStyle=T.title; ctx.font=`400 ${tSz}px ${FA}`; ctx.fillText(tBig, tx0, y);
+    ctx.fillStyle=T.accent; ctx.font=`italic 700 ${sSz}px ${FP}`; ctx.fillText(tSmall, tx0+w1, y);
     y += story ? 62 : 48;
+    const sub = ((pollo ? d.horario : d.date) || '').toUpperCase();
     ctx.textAlign='center'; ctx.fillStyle=T.muted; setLS(ctx,5);
-    fit(ctx,(d.date||'').toUpperCase(),FB,600,story?34:28,18,W-240); ctx.fillText((d.date||'').toUpperCase(), W/2, y); setLS(ctx,0);
+    fit(ctx,sub,FB,600,story?34:28,18,W-240); ctx.fillText(sub, W/2, y); setLS(ctx,0);
     y += story ? 36 : 22;
 
     // footer geometry
@@ -501,42 +557,72 @@ details[open] summary::after{content:"–"}
     const FT = H - 42 - FHt;
     const L = 150, R = W - 150;
 
-    function section(label, items){
+    function section(label, items, cl, cr){
+      cl = cl ?? L; cr = cr ?? R; const cm = (cl+cr)/2;
       if(!items.length) return;
       y += 44*s;
       const ls = Math.round(46*s);
       ctx.font=`italic 700 ${ls}px ${FP}`; ctx.textAlign='center'; ctx.fillStyle=T.accent;
       const lw = ctx.measureText(label).width;
-      ctx.fillText(label, W/2, y);
+      ctx.fillText(label, cm, y);
       ctx.strokeStyle=T.rule; ctx.lineWidth=1.6;
       const ly = y - ls*0.3;
-      ctx.beginPath(); ctx.moveTo(L, ly); ctx.lineTo(W/2-lw/2-22, ly); ctx.moveTo(W/2+lw/2+22, ly); ctx.lineTo(R, ly); ctx.stroke();
-      diamond(ctx, L, ly, 5, T.accent); diamond(ctx, R, ly, 5, T.accent);
+      ctx.beginPath(); ctx.moveTo(cl, ly); ctx.lineTo(cm-lw/2-22, ly); ctx.moveTo(cm+lw/2+22, ly); ctx.lineTo(cr, ly); ctx.stroke();
+      diamond(ctx, cl, ly, 5, T.accent); diamond(ctx, cr, ly, 5, T.accent);
       y += 8*s;
-      const fs = Math.round(46*s), lh = fs*1.26, tx = L + 34*s;
+      const fs = Math.round(46*s), lh = fs*1.26, tx = cl + 34*s;
       const fItem = `600 ${fs}px ${FB}`, fPrice = `700 ${fs}px ${FB}`;
       ctx.textAlign='left';
       items.forEach(it => {
-        const ip = splitPrice(it);
+        const ip = typeof it === 'string' ? splitPrice(it) : {name:it.n, price:it.p};
         let pw = 0, ptxt = '';
         if(ip.price){ ptxt = 'S/ '+money(ip.price); ctx.font=fPrice; pw = ctx.measureText(ptxt).width; }
         ctx.font=fItem;
-        const lines_ = wrap(ctx, ip.name, R - tx - (pw ? pw+60 : 0));
+        const lines_ = wrap(ctx, ip.name, cr - tx - (pw ? pw+40 : 0));
         y += lh;
-        diamond(ctx, L+12*s, y - fs*0.32, 7*s, T.bullet);
+        diamond(ctx, cl+12*s, y - fs*0.32, 7*s, T.bullet);
         lines_.forEach((ln,i) => { if(i>0) y += lh; ctx.fillStyle=T.text; ctx.fillText(ln, tx, y); });
         if(ptxt){
           const endX = tx + ctx.measureText(lines_[lines_.length-1]).width + 16;
-          ctx.font=fPrice; ctx.fillStyle=T.price; ctx.textAlign='right'; ctx.fillText(ptxt, R, y); ctx.textAlign='left';
-          ctx.fillStyle=T.dots; for(let x=endX; x < R-pw-16; x+=13*s){ circle(ctx, x, y-9*s, 2.2*s); ctx.fill(); }
+          ctx.font=fPrice; ctx.fillStyle=T.price; ctx.textAlign='right'; ctx.fillText(ptxt, cr, y); ctx.textAlign='left';
+          ctx.fillStyle=T.dots; for(let x=endX; x < cr-pw-16; x+=13*s){ circle(ctx, x, y-9*s, 2.2*s); ctx.fill(); }
         }
       });
       y += 12*s;
     }
-    section('Entradas', lines(d.entradas));
-    section('Segundos', lines(d.segundos));
+    if(pollo){
+      if((d.promo||'').trim()){
+        y += 42*s;
+        const pad = 26*s, bx = L-30, bw = R-L+60;
+        const pp = money(d.promoPrice), pTxt = pp ? 'S/ '+pp : '';
+        const fsP = Math.round(84*s); ctx.font=`400 ${fsP}px ${FA}`; const ppw = pTxt ? ctx.measureText(pTxt).width : 0;
+        const fsT = Math.round(42*s); ctx.font=`700 ${fsT}px ${FB}`;
+        const tl = wrap(ctx, d.promo.trim(), bw - pad*2 - (ppw ? ppw+34 : 0));
+        const lab = Math.round(32*s), bh = pad*2 + lab*1.15 + tl.length*fsT*1.12;
+        ctx.save(); ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6;
+        const g = ctx.createLinearGradient(0,y,0,y+bh); g.addColorStop(0,'#C0301F'); g.addColorStop(1,'#7E1812');
+        rrect(ctx,bx,y,bw,bh,18); ctx.fillStyle=g; ctx.fill(); ctx.restore();
+        rrect(ctx,bx,y,bw,bh,18); ctx.strokeStyle=G.gold; ctx.lineWidth=3; ctx.stroke();
+        rrect(ctx,bx+8,y+8,bw-16,bh-16,12); ctx.strokeStyle='rgba(233,185,73,.45)'; ctx.lineWidth=1.2; ctx.stroke();
+        ctx.textAlign='left'; ctx.fillStyle=G.goldLt; ctx.font=`italic 700 ${lab}px ${FP}`; ctx.fillText('Promo de la casa', bx+pad, y+pad+lab*0.8);
+        let ty = y+pad+lab*1.15; ctx.fillStyle=G.cream; ctx.font=`700 ${fsT}px ${FB}`;
+        tl.forEach(l => { ty += fsT*1.08; ctx.fillText(l, bx+pad, ty); });
+        if(pTxt){ ctx.textAlign='right'; ctx.fillStyle=G.gold; ctx.font=`400 ${fsP}px ${FA}`; ctx.fillText(pTxt, bx+bw-pad, y+bh/2+fsP*0.36); }
+        y += bh + 22*s;
+      }
+      section('Pollos y combos', itemsOf(d.pollos));
+      const bI = itemsOf(d.bebidas), eI = itemsOf(d.extras);
+      if(bI.length && eI.length){
+        const y0 = y, mid = W/2;
+        section('Bebidas', bI, L-40, mid-24); const y1 = y;
+        y = y0; section('Extras', eI, mid+24, R+40); y = Math.max(y, y1);
+      } else { section('Bebidas', bI); section('Extras', eI); }
+    } else {
+    section('Entradas', itemsOf(d.entradas));
+    section('Segundos', itemsOf(d.segundos));
+    }
 
-    if((d.refresco||'').trim()){
+    if(!pollo && (d.refresco||'').trim()){
       y += 60*s;
       const fs = Math.round(38*s), lab = 'Incluye refresco:  ', val = d.refresco.trim();
       ctx.font=`500 ${fs}px ${FB}`; const a = ctx.measureText(lab).width;
@@ -590,7 +676,7 @@ details[open] summary::after{content:"–"}
   let tmr;
   function onInput(){
     fields.forEach(f => { st[f] = $(f).value; });
-    st.entradas = readRows('entradas'); st.segundos = readRows('segundos');
+    SECS.forEach(sec => { st[sec] = readRows(sec); });
     st.edited = true; $('exampleNote').hidden = true;
     save(); clearTimeout(tmr); tmr = setTimeout(render, 120);
   }
@@ -598,7 +684,7 @@ details[open] summary::after{content:"–"}
   $('exampleNote').hidden = !!st.edited;
   $('todayBtn').addEventListener('click', () => { $('date').value = todayText(); onInput(); });
 
-  function syncSegs(){ document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(st[b.dataset.key] === b.dataset.val))); }
+  function syncSegs(){ document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(st[b.dataset.key] === b.dataset.val))); $('menuPane').hidden = st.mode === 'polleria'; $('polloPane').hidden = st.mode !== 'polleria'; }
   document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { st[b.dataset.key] = b.dataset.val; syncSegs(); save(); render(); }));
   syncSegs();
 
@@ -645,7 +731,7 @@ details[open] summary::after{content:"–"}
     a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(u), 4000); toast(okMsg);
   }
-  $('dlBtn').addEventListener('click', () => offer(cv, `menu-${new Date().toISOString().slice(0,10)}${st.fmt==='story'?'-estado':''}.png`, 'Imagen descargada. Ya la pueden mandar por WhatsApp.'));
+  $('dlBtn').addEventListener('click', () => offer(cv, `${st.mode==='polleria'?'polleria':'menu-'+new Date().toISOString().slice(0,10)}${st.fmt==='story'?'-estado':''}.png`, 'Imagen descargada. Ya la pueden mandar por WhatsApp.'));
   $('logoDl').addEventListener('click', () => offer(lc, 'logo-el-pollo-chelero.png', 'Logo descargado.'));
 
   /* ---------- start ---------- */
