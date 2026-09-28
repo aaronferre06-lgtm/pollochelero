@@ -747,7 +747,7 @@ details[open] summary::after{content:"–"}
       }
       section('Pollos y combos', itemsOf(d.pollos), undefined, undefined, true);
       const bI = itemsOf(d.bebidas), eI = itemsOf(d.extras);
-      if(bI.length && eI.length && !(useF && [...bI,...eI].some(x => getImg(fotoKey(x.n, x.foto))))){
+      if(bI.length && eI.length){
         const y0 = y, mid = W/2;
         section('Bebidas', bI, L-40, mid-24); const y1 = y;
         y = y0; section('Extras', eI, mid+24, R+40); y = Math.max(y, y1);
