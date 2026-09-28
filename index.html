@@ -77,13 +77,13 @@ details[open] summary::after{content:"–"}
 .frame{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
 .frame img{display:block;width:100%;height:auto;border-radius:6px;max-height:72vh;object-fit:contain}
 .items{display:flex;flex-direction:column;gap:8px}
-.items-head{display:grid;grid-template-columns:minmax(0,1fr) 112px 40px;gap:8px;font-weight:700;font-size:16px}
-.items-head span:nth-child(2){color:var(--muted);font-size:14px;font-weight:600;align-self:end}
+.items-head{display:grid;grid-template-columns:48px minmax(0,1fr) 96px 36px;gap:8px;font-weight:700;font-size:16px}
+.items-head span:nth-child(3){color:var(--muted);font-size:14px;font-weight:600;align-self:end}
 .rows{display:flex;flex-direction:column;gap:8px}
-.irow{display:grid;grid-template-columns:minmax(0,1fr) 112px 40px;gap:8px;align-items:center}
+.irow{display:grid;grid-template-columns:48px minmax(0,1fr) 96px 36px;gap:8px;align-items:center}
 .irow .money{padding-left:10px}
 .irow .money input{padding-left:6px;padding-right:8px}
-.del{padding:9px 0;width:40px;color:var(--muted);font-size:20px;line-height:1}
+.del{padding:9px 0;width:36px;color:var(--muted);font-size:20px;line-height:1}
 .add{align-self:flex-start;border-style:dashed;color:var(--accent)}
 .pane{display:flex;flex-direction:column;gap:18px}
 .pane[hidden]{display:none}
@@ -91,6 +91,22 @@ details[open] summary::after{content:"–"}
 .seg.mode button{flex:1;font-size:18px;padding:12px 10px}
 .promo-row{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:14px;align-items:end}
 @media (max-width:480px){.promo-row{grid-template-columns:minmax(0,1fr)}}
+.pic{width:48px;height:44px;padding:0;border-radius:10px;overflow:hidden;border:1px dashed var(--line);background:var(--surface-2);display:grid;place-items:center;font-size:11px;font-weight:600;color:var(--muted)}
+.pic img{width:100%;height:100%;object-fit:cover;display:block}
+.picrow{display:flex;gap:12px;align-items:center}
+.chk{flex-direction:row;align-items:center;gap:10px;font-weight:600}
+.chk input{width:20px;height:20px;accent-color:var(--accent)}
+.picker{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:10;padding:16px}
+.picker[hidden]{display:none}
+.sheet{background:var(--surface);color:var(--ink);border-radius:16px;max-width:560px;width:100%;max-height:82vh;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.pgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pgrid button{padding:0;overflow:hidden;display:flex;flex-direction:column;text-align:left;font-size:13px;font-weight:600}
+.pgrid button[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:1px}
+.pgrid img,.pgrid .ph{width:100%;aspect-ratio:4/3;object-fit:cover;display:grid;place-items:center;background:var(--surface-2);color:var(--muted)}
+.pgrid span{padding:6px 8px}
+.credits{font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.credits a{color:var(--accent)}
 .note{font-size:14px;color:var(--muted);margin:0;text-align:center}
 .example{font-size:14px;background:var(--accent-soft);color:var(--ink);border-radius:8px;padding:8px 12px;margin:0}
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;max-width:calc(100% - 32px)}
@@ -141,12 +157,12 @@ details[open] summary::after{content:"–"}
         </div>
         <p class="hint" style="margin:0">Cada plato tiene su casilla de precio para cuando se vende aparte o cuesta distinto. Si la dejan vacía, ese plato entra en el precio del menú.</p>
         <div class="items">
-          <div class="items-head"><span>Entradas</span><span>Precio</span></div>
+          <div class="items-head"><span>Foto</span><span>Entradas</span><span>Precio</span><span></span></div>
           <div class="rows" id="rows-entradas"></div>
           <button type="button" class="add" data-sec="entradas">+ Agregar entrada</button>
         </div>
         <div class="items">
-          <div class="items-head"><span>Segundos</span><span>Precio</span></div>
+          <div class="items-head"><span>Foto</span><span>Segundos</span><span>Precio</span><span></span></div>
           <div class="rows" id="rows-segundos"></div>
           <button type="button" class="add" data-sec="segundos">+ Agregar segundo</button>
         </div>
@@ -170,18 +186,19 @@ details[open] summary::after{content:"–"}
             <div class="money"><span>S/</span><input type="text" inputmode="decimal" id="promoPrice" autocomplete="off" placeholder="0.00"></div>
           </label>
         </div>
+        <div class="picrow"><button type="button" class="pic" id="promoPic" aria-label="Foto de la promo"></button><span class="hint">Foto de la promo. Tóquenla para cambiarla.</span></div>
         <div class="items">
-          <div class="items-head"><span>Pollos y combos</span><span>Precio</span></div>
+          <div class="items-head"><span>Foto</span><span>Pollos y combos</span><span>Precio</span><span></span></div>
           <div class="rows" id="rows-pollos"></div>
           <button type="button" class="add" data-sec="pollos">+ Agregar pollo o combo</button>
         </div>
         <div class="items">
-          <div class="items-head"><span>Bebidas</span><span>Precio</span></div>
+          <div class="items-head"><span>Foto</span><span>Bebidas</span><span>Precio</span><span></span></div>
           <div class="rows" id="rows-bebidas"></div>
           <button type="button" class="add" data-sec="bebidas">+ Agregar bebida</button>
         </div>
         <div class="items">
-          <div class="items-head"><span>Extras</span><span>Precio</span></div>
+          <div class="items-head"><span>Foto</span><span>Extras</span><span>Precio</span><span></span></div>
           <div class="rows" id="rows-extras"></div>
           <button type="button" class="add" data-sec="extras">+ Agregar extra</button>
         </div>
@@ -214,6 +231,11 @@ details[open] summary::after{content:"–"}
           <input type="text" id="nota" autocomplete="off">
         </label>
       </details>
+      <details class="card">
+        <summary>Créditos de las fotos</summary>
+        <p class="hint" style="margin:0">Las fotos son referenciales y vienen de Wikimedia Commons, con licencias libres. Toquen un nombre para ver el autor y la licencia.</p>
+        <div class="credits" id="credits"></div>
+      </details>
     </div>
 
     <aside class="preview" aria-label="Vista previa">
@@ -229,11 +251,18 @@ details[open] summary::after{content:"–"}
       </div>
       <div class="frame"><img id="out" alt="Imagen del menú del día"></div>
       <button type="button" class="primary" id="dlBtn" hidden>Descargar imagen del menú</button>
+      <label class="chk" for="fotosChk"><input type="checkbox" id="fotosChk"> Poner fotos de los platos en la imagen</label>
       <p class="note" id="saveHint">En el celular: mantén presionada la imagen y elige "Guardar imagen".</p>
     </aside>
   </div>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
+<div class="picker" id="picker" hidden role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+  <div class="sheet">
+    <div class="sheet-head"><b id="pickTitle">Elegir foto</b><button type="button" id="pickClose">Cerrar</button></div>
+    <div class="pgrid" id="pgrid"></div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -251,7 +280,7 @@ details[open] summary::after{content:"–"}
     pollos:[{n:'1 pollo entero + papas + ensalada',p:''},{n:'1/2 pollo + papas + ensalada',p:''},{n:'1/4 pollo + papas + ensalada',p:''},{n:'Mostrito (1/4 pollo + chaufa)',p:''}],
     bebidas:[{n:'Gaseosa 1.5 L',p:''},{n:'Chicha morada (jarra)',p:''},{n:'Cerveza',p:''}],
     extras:[{n:'Porción de papas',p:''},{n:'Porción de ensalada',p:''},{n:'Arroz chaufa',p:''}],
-    mode:'menu',
+    mode:'menu', fotos:true, promoFoto:'auto',
     logo:'', fmt:'post', style:'carbon', edited:false
   };
   let st = Object.assign({}, DEF);
@@ -262,36 +291,89 @@ details[open] summary::after{content:"–"}
   const fields = ['name','date','price','refresco','nota','horario','promo','promoPrice'];
   fields.forEach(f => { $(f).value = st[f] || ''; });
 
-  /* ---------- dish rows (name + price) ---------- */
+  /* ---------- photo library (Wikimedia Commons, free licenses) ---------- */
+  const FOTOS = {"entero": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Roast_chicken.jpg/500px-Roast_chicken.jpg", "l": "Pollo entero", "p": "https://commons.wikimedia.org/wiki/File:Roast_chicken.jpg"}, "medio": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Roasted_chicken_and_potatoes.JPG/500px-Roasted_chicken_and_potatoes.JPG", "l": "Pollo en presas", "p": "https://commons.wikimedia.org/wiki/File:Roasted_chicken_and_potatoes.JPG"}, "cuarto": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Un_cuarto_de_Pollo_a_la_Brasa.JPG/500px-Un_cuarto_de_Pollo_a_la_Brasa.JPG", "l": "1/4 de pollo", "p": "https://commons.wikimedia.org/wiki/File:Un_cuarto_de_Pollo_a_la_Brasa.JPG"}, "cuarto2": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Un_cuarto_de_Pollo_a_la_Brasa_%28pecho%29.JPG/500px-Un_cuarto_de_Pollo_a_la_Brasa_%28pecho%29.JPG", "l": "1/4 pecho", "p": "https://commons.wikimedia.org/wiki/File:Un_cuarto_de_Pollo_a_la_Brasa_%28pecho%29.JPG"}, "octavo": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Pollo_a_la_brasa_pierna_con_papas.JPG/500px-Pollo_a_la_brasa_pierna_con_papas.JPG", "l": "1/8 pierna", "p": "https://commons.wikimedia.org/wiki/File:Pollo_a_la_brasa_pierna_con_papas.JPG"}, "entero2": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Rotissierie_chicken.JPG/500px-Rotissierie_chicken.JPG", "l": "Pollo a la brasa", "p": "https://commons.wikimedia.org/wiki/File:Rotissierie_chicken.JPG"}, "cremas": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Cremas_del_Pollo_a_la_Brasa_%28Peru%29.JPG/500px-Cremas_del_Pollo_a_la_Brasa_%28Peru%29.JPG", "l": "Cremas", "p": "https://commons.wikimedia.org/wiki/File:Cremas_del_Pollo_a_la_Brasa_%28Peru%29.JPG"}, "papas": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Papas_Fritas.jpg/500px-Papas_Fritas.jpg", "l": "Papas fritas", "p": "https://commons.wikimedia.org/wiki/File:Papas_Fritas.jpg"}, "ensalada": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Ensalada.jpg/500px-Ensalada.jpg", "l": "Ensalada", "p": "https://commons.wikimedia.org/wiki/File:Ensalada.jpg"}, "chaufa": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Arroz_chaufa_simple.JPG/500px-Arroz_chaufa_simple.JPG", "l": "Arroz chaufa", "p": "https://commons.wikimedia.org/wiki/File:Arroz_chaufa_simple.JPG"}, "cola": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Glass_of_Cola.jpg/500px-Glass_of_Cola.jpg", "l": "Gaseosa", "p": "https://commons.wikimedia.org/wiki/File:Glass_of_Cola.jpg"}, "chicha": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Chicha_Morada_2017.jpg/500px-Chicha_Morada_2017.jpg", "l": "Chicha morada", "p": "https://commons.wikimedia.org/wiki/File:Chicha_Morada_2017.jpg"}, "cerveza": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Glass_of_beer_with_bottles_in_the_background.jpg/500px-Glass_of_beer_with_bottles_in_the_background.jpg", "l": "Cerveza", "p": "https://commons.wikimedia.org/wiki/File:Glass_of_beer_with_bottles_in_the_background.jpg"}, "huancaina": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Papa_a_la_huancaina.jpg/500px-Papa_a_la_huancaina.jpg", "l": "Papa a la huancaína", "p": "https://commons.wikimedia.org/wiki/File:Papa_a_la_huancaina.jpg"}, "ceviche": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Ceviche_de_pescado_%28La_Punta%2C_Callao%29.jpg/500px-Ceviche_de_pescado_%28La_Punta%2C_Callao%29.jpg", "l": "Ceviche", "p": "https://commons.wikimedia.org/wiki/File:Ceviche_de_pescado_%28La_Punta%2C_Callao%29.jpg"}, "caldo": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Caldo_de_gallina.png/500px-Caldo_de_gallina.png", "l": "Sopa o caldo", "p": "https://commons.wikimedia.org/wiki/File:Caldo_de_gallina.png"}, "arrozpollo": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Arroz_con_pollo_y_papa_a_la_huancaina.JPG/500px-Arroz_con_pollo_y_papa_a_la_huancaina.JPG", "l": "Arroz con pollo", "p": "https://commons.wikimedia.org/wiki/File:Arroz_con_pollo_y_papa_a_la_huancaina.JPG"}, "aji": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Aj%C3%AD_de_gallina_-_Tradicional.jpg/500px-Aj%C3%AD_de_gallina_-_Tradicional.jpg", "l": "Ají de gallina", "p": "https://commons.wikimedia.org/wiki/File:Aj%C3%AD_de_gallina_-_Tradicional.jpg"}, "seco": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Seco_de_cabrito_con_frijoles.JPG/500px-Seco_de_cabrito_con_frijoles.JPG", "l": "Seco con frejoles", "p": "https://commons.wikimedia.org/wiki/File:Seco_de_cabrito_con_frijoles.JPG"}, "tallarin": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Tallarin_Saltado_Peru.jpg/500px-Tallarin_Saltado_Peru.jpg", "l": "Tallarín saltado", "p": "https://commons.wikimedia.org/wiki/File:Tallarin_Saltado_Peru.jpg"}, "lomo": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Lomo_saltado_peruano.jpg/500px-Lomo_saltado_peruano.jpg", "l": "Lomo saltado", "p": "https://commons.wikimedia.org/wiki/File:Lomo_saltado_peruano.jpg"}, "chicharron": {"u": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/Chicharr%C3%B3n_de_paiche.jpg/500px-Chicharr%C3%B3n_de_paiche.jpg", "l": "Chicharrón de pescado", "p": "https://commons.wikimedia.org/wiki/File:Chicharr%C3%B3n_de_paiche.jpg"}};
+  function norm(t){ return (t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+  const RULES = [[/mostrit|chaufa/,'chaufa'],[/1\/8|octavo/,'octavo'],[/1\/4|cuarto/,'cuarto'],[/1\/2|medio pollo/,'medio'],[/entero|^1 pollo|un pollo/,'entero'],
+    [/huancain/,'huancaina'],[/papa/,'papas'],[/ensalad/,'ensalada'],[/crema/,'cremas'],[/gaseosa|coca|inca|cola|sprite|fanta|agua/,'cola'],[/chicha/,'chicha'],
+    [/cerveza|chela|pilsen|cristal|cusquena/,'cerveza'],[/ceviche|cebiche/,'ceviche'],[/sopa|caldo|dieta|chupe|aguadito|menestron/,'caldo'],[/arroz con pollo/,'arrozpollo'],
+    [/aji de gallina|aji/,'aji'],[/seco/,'seco'],[/tallarin|fideo/,'tallarin'],[/lomo|saltado/,'lomo'],[/chicharron|pescado/,'chicharron'],[/pollo|brasa/,'cuarto']];
+  function autoKey(name){ const n = norm(name); for(const r of RULES){ if(r[0].test(n)) return r[1]; } return null; }
+  function fotoKey(name, choice){ if(choice === 'none') return null; if(choice && choice !== 'auto' && FOTOS[choice]) return choice; return autoKey(name); }
+  const imgCache = new Map();
+  function getImg(key){
+    if(!key || !FOTOS[key]) return null;
+    let im = imgCache.get(key);
+    if(!im){ im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { clearTimeout(getImg._t); getImg._t = setTimeout(render, 60); }; im.src = FOTOS[key].u; imgCache.set(key, im); }
+    return (im.complete && im.naturalWidth) ? im : null;
+  }
+  function setPicBtn(btn, name, choice){
+    const k = fotoKey(name, choice);
+    btn.innerHTML = k ? `<img alt="" src="${FOTOS[k].u}">` : 'Sin foto';
+    btn.title = k ? FOTOS[k].l : 'Sin foto';
+  }
+  // picker
+  let pickDone = null;
+  function openPicker(name, choice, done){
+    pickDone = done;
+    const g = $('pgrid'); g.innerHTML = '';
+    const ak = autoKey(name);
+    const opts = [['auto', ak ? FOTOS[ak].u : '', 'Automática'], ['none','', 'Sin foto'], ...Object.entries(FOTOS).map(([k,v]) => [k, v.u, v.l])];
+    opts.forEach(([k,u,l]) => {
+      const b = document.createElement('button'); b.type='button';
+      b.setAttribute('aria-pressed', String((choice||'auto') === k));
+      b.innerHTML = (u ? `<img alt="" src="${u}" loading="lazy">` : `<div class="ph">—</div>`) + `<span>${l}</span>`;
+      b.addEventListener('click', () => { closePicker(); if(pickDone) pickDone(k); });
+      g.appendChild(b);
+    });
+    $('picker').hidden = false; $('pickClose').focus();
+  }
+  function closePicker(){ $('picker').hidden = true; }
+  $('pickClose').addEventListener('click', closePicker);
+  $('picker').addEventListener('click', e => { if(e.target === $('picker')) closePicker(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && !$('picker').hidden) closePicker(); });
+  $('credits').innerHTML = Object.values(FOTOS).map(v => `<a href="${v.p}" target="_blank" rel="noopener">${v.l}</a>`).join('');
+
+  /* ---------- dish rows (photo + name + price) ---------- */
   const SECS = ['entradas','segundos','pollos','bebidas','extras'];
   const LAB = {entradas:'Entrada', segundos:'Segundo', pollos:'Pollo o combo', bebidas:'Bebida', extras:'Extra'};
   function itemsOf(v){
-    if(Array.isArray(v)) return v.filter(x => x && (x.n||'').trim()).map(x => ({n:x.n.trim(), p:x.p||''}));
-    return lines(v).map(l => { const q = splitPrice(l); return {n:q.name, p:q.price}; });
+    if(Array.isArray(v)) return v.filter(x => x && (x.n||'').trim()).map(x => ({n:x.n.trim(), p:x.p||'', foto:x.foto||'auto'}));
+    return lines(v).map(l => { const q = splitPrice(l); return {n:q.name, p:q.price, foto:'auto'}; });
   }
-  function addRow(sec, name, price, focus){
+  function addRow(sec, name, price, focus, foto){
     const box = $('rows-'+sec), i = box.children.length + 1, lab = LAB[sec];
-    const row = document.createElement('div'); row.className = 'irow';
-    row.innerHTML = `<input type="text" class="iname" id="${sec}-n-${i}-${Math.random().toString(36).slice(2,7)}" autocomplete="off" placeholder="${lab}" aria-label="${lab} ${i}">`+
+    const row = document.createElement('div'); row.className = 'irow'; row.dataset.foto = foto || 'auto';
+    row.innerHTML = `<button type="button" class="pic" aria-label="Foto de ${lab.toLowerCase()} ${i}"></button>`+
+      `<input type="text" class="iname" id="${sec}-n-${i}-${Math.random().toString(36).slice(2,7)}" autocomplete="off" placeholder="${lab}" aria-label="${lab} ${i}">`+
       `<div class="money"><span>S/</span><input type="text" class="iprice" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="Precio ${lab.toLowerCase()} ${i}"></div>`+
       `<button type="button" class="del" aria-label="Quitar ${lab.toLowerCase()} ${i}">×</button>`;
-    row.querySelector('.iname').value = name || '';
+    const nm = row.querySelector('.iname'), pic = row.querySelector('.pic');
+    nm.value = name || '';
     row.querySelector('.iprice').value = price || '';
+    setPicBtn(pic, nm.value, row.dataset.foto);
     row.querySelectorAll('input').forEach(x => x.addEventListener('input', onInput));
+    nm.addEventListener('input', () => setPicBtn(pic, nm.value, row.dataset.foto));
+    pic.addEventListener('click', () => openPicker(nm.value, row.dataset.foto, k => { row.dataset.foto = k; setPicBtn(pic, nm.value, k); onInput(); }));
     row.querySelector('.del').addEventListener('click', () => { row.remove(); onInput(); });
     box.appendChild(row);
-    if(focus) row.querySelector('.iname').focus();
+    if(focus) nm.focus();
   }
   function setRows(sec, v){
     $('rows-'+sec).innerHTML = '';
-    const it = itemsOf(v); it.forEach(x => addRow(sec, x.n, x.p));
+    const it = itemsOf(v); it.forEach(x => addRow(sec, x.n, x.p, false, x.foto));
     if(!it.length) addRow(sec, '', '');
   }
   function readRows(sec){
-    return [...$('rows-'+sec).querySelectorAll('.irow')].map(r => ({n:r.querySelector('.iname').value.trim(), p:money(r.querySelector('.iprice').value)})).filter(x => x.n);
+    return [...$('rows-'+sec).querySelectorAll('.irow')].map(r => ({n:r.querySelector('.iname').value.trim(), p:money(r.querySelector('.iprice').value), foto:r.dataset.foto||'auto'})).filter(x => x.n);
   }
   document.querySelectorAll('.add').forEach(b => b.addEventListener('click', () => addRow(b.dataset.sec, '', '', true)));
   SECS.forEach(sec => setRows(sec, st[sec]));
+  setPicBtn($('promoPic'), st.promo, st.promoFoto);
+  $('promo').addEventListener('input', () => setPicBtn($('promoPic'), $('promo').value, st.promoFoto));
+  $('promoPic').addEventListener('click', () => openPicker($('promo').value, st.promoFoto, k => { st.promoFoto = k; setPicBtn($('promoPic'), $('promo').value, k); onInput(); }));
+  $('fotosChk').checked = st.fotos !== false;
+  $('fotosChk').addEventListener('change', () => { st.fotos = $('fotosChk').checked; save(); render(); });
 
   function todayText(){
     try{
@@ -348,9 +430,9 @@ details[open] summary::after{content:"–"}
              cream:'#FFF3DC', coal:'#15100E', ink:'#1E1512'};
   const THEMES = {
     carbon:{bg:G.coal, dark:true, frame:G.gold, title:G.cream, accent:G.gold, text:G.cream, muted:'rgba(255,243,220,.66)', price:G.gold,
-            dots:'rgba(233,185,73,.5)', rule:'rgba(233,185,73,.6)', bullet:G.gold},
+            dots:'rgba(233,185,73,.5)', rule:'rgba(233,185,73,.6)', bullet:G.gold, card:'#2A201C', cardLine:'rgba(233,185,73,.55)'},
     crema:{bg:'#F4E9DA', dark:false, frame:G.redDk, title:G.ink, accent:G.red, text:G.ink, muted:'rgba(30,21,18,.62)', price:G.red,
-           dots:'rgba(126,24,18,.45)', rule:'rgba(126,24,18,.5)', bullet:G.red}
+           dots:'rgba(126,24,18,.45)', rule:'rgba(126,24,18,.5)', bullet:G.red, card:'#FFFFFF', cardLine:'rgba(126,24,18,.35)'}
   };
   let logoImg = null;
 
@@ -496,7 +578,8 @@ details[open] summary::after{content:"–"}
     ctx.setTransform(1,0,0,1,0,0); setLS(ctx,0); ctx.textAlign='left'; ctx.textBaseline='alphabetic';
     ctx.fillStyle=T.bg; ctx.fillRect(0,0,W,H);
     const pollo = d.mode === 'polleria';
-    const u = story ? 2.1 : (pollo ? 1.34 : 1.6), ecy = story ? 318 : (pollo ? 196 : 222);
+    const useF = d.fotos !== false, comp = !story && useF;
+    const u = story ? 2.1 : comp ? (pollo ? 1.12 : 1.22) : (pollo ? 1.34 : 1.6), ecy = story ? 318 : comp ? (pollo ? 164 : 172) : (pollo ? 196 : 222);
     const r = rng(11);
     if(T.dark){
       glow(ctx, W/2, ecy, 560, 'rgba(240,113,44,.20)');
@@ -537,9 +620,9 @@ details[open] summary::after{content:"–"}
     }
 
     // title
-    let y = ecy + 100*u + (story ? 150 : (pollo ? 100 : 112));
+    let y = ecy + 100*u + (story ? 150 : comp ? 94 : (pollo ? 100 : 112));
     ctx.textAlign='left';
-    const tSz = story ? 150 : (pollo ? 100 : 112), sSz = Math.round(tSz*0.5);
+    const tSz = story ? 150 : comp ? 92 : (pollo ? 100 : 112), sSz = Math.round(tSz*0.5);
     const tBig = pollo ? 'POLLO' : 'MENÚ', tSmall = pollo ? ' a la brasa' : ' del día';
     ctx.font=`400 ${tSz}px ${FA}`; const w1 = ctx.measureText(tBig).width;
     ctx.font=`italic 700 ${sSz}px ${FP}`; const w2 = ctx.measureText(tSmall).width;
@@ -557,7 +640,43 @@ details[open] summary::after{content:"–"}
     const FT = H - 42 - FHt;
     const L = 150, R = W - 150;
 
-    function section(label, items, cl, cr){
+    let usedPhotos = false;
+    function photoOf(it){ if(!useF || typeof it === 'string') return null; return getImg(fotoKey(it.n, it.foto)); }
+    function coverDraw(im, x, y0, w, h){ const k = Math.max(w/im.width, h/im.height), iw = im.width*k, ih = im.height*k; ctx.drawImage(im, x+w/2-iw/2, y0+h/2-ih/2, iw, ih); }
+    function drawCards(cards, cl, cr, cm){
+      const n = cards.length, cols = n >= 5 ? 3 : 2, gap = 22*s;
+      const cw = Math.min((cr-cl+60 - gap*(cols-1))/cols, (cols===3 ? 300 : 420)*s);
+      const ph = cw*0.66, pad = 14*s, fsN = Math.round((cols===3 ? 32 : 38)*s), lhN = fsN*1.12;
+      y += 24*s;
+      for(let i=0;i<n;i+=cols){
+        const row = cards.slice(i,i+cols), rw = row.length*cw + (row.length-1)*gap, x0 = cm - rw/2;
+        ctx.font=`700 ${fsN}px ${FB}`;
+        const nls = row.map(c => wrap(ctx, c.it.n, cw - pad*2).slice(0,2));
+        const nmax = Math.max(...nls.map(a => a.length));
+        const ch = ph + pad + fsN*0.9 + (nmax-1)*lhN + pad*1.1;
+        row.forEach((c,k) => {
+          const x = x0 + k*(cw+gap);
+          ctx.save(); ctx.shadowColor='rgba(0,0,0,.4)'; ctx.shadowBlur=16*s; ctx.shadowOffsetY=6*s;
+          rrect(ctx,x,y,cw,ch,14*s); ctx.fillStyle=T.card; ctx.fill(); ctx.restore();
+          ctx.save(); rrect(ctx,x,y,cw,ch,14*s); ctx.clip(); coverDraw(c.im, x, y, cw, ph);
+          const gr = ctx.createLinearGradient(0,y+ph*0.55,0,y+ph); gr.addColorStop(0,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(0,0,0,.38)'); ctx.fillStyle=gr; ctx.fillRect(x,y,cw,ph);
+          ctx.restore();
+          rrect(ctx,x,y,cw,ch,14*s); ctx.strokeStyle=T.cardLine; ctx.lineWidth=2; ctx.stroke();
+          ctx.textAlign='left'; ctx.fillStyle=T.text; ctx.font=`700 ${fsN}px ${FB}`;
+          nls[k].forEach((l,j) => ctx.fillText(l, x+pad, y+ph+pad+fsN*0.9+j*lhN));
+          if(c.it.p){
+            const t = 'S/ '+money(c.it.p), fz = Math.round((cols===3 ? 38 : 46)*s);
+            ctx.font=`400 ${fz}px ${FA}`; const tw = ctx.measureText(t).width, th = fz*1.3, bx = x+cw-tw-pad*3, by = y+ph-th*0.62;
+            ctx.save(); ctx.shadowColor='rgba(0,0,0,.45)'; ctx.shadowBlur=10*s; rrect(ctx,bx,by,tw+pad*2,th,th/2); ctx.fillStyle=G.gold; ctx.fill(); ctx.restore();
+            rrect(ctx,bx,by,tw+pad*2,th,th/2); ctx.strokeStyle=G.coal; ctx.lineWidth=2; ctx.stroke();
+            ctx.fillStyle=G.coal; ctx.fillText(t, bx+pad, by+th*0.75);
+          }
+        });
+        y += ch + gap;
+      }
+      y -= gap*0.4;
+    }
+    function section(label, items, cl, cr, featured){
       cl = cl ?? L; cr = cr ?? R; const cm = (cl+cr)/2;
       if(!items.length) return;
       y += 44*s;
@@ -570,23 +689,34 @@ details[open] summary::after{content:"–"}
       ctx.beginPath(); ctx.moveTo(cl, ly); ctx.lineTo(cm-lw/2-22, ly); ctx.moveTo(cm+lw/2+22, ly); ctx.lineTo(cr, ly); ctx.stroke();
       diamond(ctx, cl, ly, 5, T.accent); diamond(ctx, cr, ly, 5, T.accent);
       y += 8*s;
-      const fs = Math.round(46*s), lh = fs*1.26, tx = cl + 34*s;
+      const all = items.map(it => ({it, im: photoOf(it)}));
+      if(all.some(x => x.im)) usedPhotos = true;
+      const cards = featured ? all.filter(x => x.im) : [];
+      const rest = all.filter(x => !cards.includes(x));
+      if(cards.length) drawCards(cards, cl, cr, cm);
+      const fs = Math.round(46*s), lh = fs*1.26;
       const fItem = `600 ${fs}px ${FB}`, fPrice = `700 ${fs}px ${FB}`;
       ctx.textAlign='left';
-      items.forEach(it => {
+      rest.forEach(({it, im}) => {
         const ip = typeof it === 'string' ? splitPrice(it) : {name:it.n, price:it.p};
+        const tr = im ? Math.round(fs*0.66) : 0, tx = im ? cl + tr*2 + 18*s : cl + 34*s;
         let pw = 0, ptxt = '';
         if(ip.price){ ptxt = 'S/ '+money(ip.price); ctx.font=fPrice; pw = ctx.measureText(ptxt).width; }
         ctx.font=fItem;
         const lines_ = wrap(ctx, ip.name, cr - tx - (pw ? pw+40 : 0));
-        y += lh;
-        diamond(ctx, cl+12*s, y - fs*0.32, 7*s, T.bullet);
-        lines_.forEach((ln,i) => { if(i>0) y += lh; ctx.fillStyle=T.text; ctx.fillText(ln, tx, y); });
+        const rowH = im ? Math.max(lh, tr*2 + 14*s) : lh, top = y, base = top + rowH/2 + fs*0.34;
+        if(im){
+          ctx.save(); circle(ctx, cl+tr, top+rowH/2, tr); ctx.clip(); coverDraw(im, cl, top+rowH/2-tr, tr*2, tr*2); ctx.restore();
+          circle(ctx, cl+tr, top+rowH/2, tr); ctx.strokeStyle=T.accent; ctx.lineWidth=2.5; ctx.stroke();
+        } else diamond(ctx, cl+12*s, base - fs*0.32, 7*s, T.bullet);
+        lines_.forEach((ln,i) => { ctx.fillStyle=T.text; ctx.fillText(ln, tx, base + i*lh); });
+        const lastB = base + (lines_.length-1)*lh;
         if(ptxt){
           const endX = tx + ctx.measureText(lines_[lines_.length-1]).width + 16;
-          ctx.font=fPrice; ctx.fillStyle=T.price; ctx.textAlign='right'; ctx.fillText(ptxt, cr, y); ctx.textAlign='left';
-          ctx.fillStyle=T.dots; for(let x=endX; x < cr-pw-16; x+=13*s){ circle(ctx, x, y-9*s, 2.2*s); ctx.fill(); }
+          ctx.font=fPrice; ctx.fillStyle=T.price; ctx.textAlign='right'; ctx.fillText(ptxt, cr, lastB); ctx.textAlign='left';
+          ctx.fillStyle=T.dots; for(let x=endX; x < cr-pw-16; x+=13*s){ circle(ctx, x, lastB-9*s, 2.2*s); ctx.fill(); }
         }
+        y = top + rowH + (lines_.length-1)*lh;
       });
       y += 12*s;
     }
@@ -597,29 +727,33 @@ details[open] summary::after{content:"–"}
         const pp = money(d.promoPrice), pTxt = pp ? 'S/ '+pp : '';
         const fsP = Math.round(84*s); ctx.font=`400 ${fsP}px ${FA}`; const ppw = pTxt ? ctx.measureText(pTxt).width : 0;
         const fsT = Math.round(42*s); ctx.font=`700 ${fsT}px ${FB}`;
-        const tl = wrap(ctx, d.promo.trim(), bw - pad*2 - (ppw ? ppw+34 : 0));
-        const lab = Math.round(32*s), bh = pad*2 + lab*1.15 + tl.length*fsT*1.12;
+        const pim = useF ? getImg(fotoKey(d.promo, d.promoFoto)) : null, pwid = pim ? Math.round(250*s) : 0;
+        if(pim) usedPhotos = true;
+        const tl = wrap(ctx, d.promo.trim(), bw - pwid - pad*2 - (ppw ? ppw+34 : 0));
+        const lab = Math.round(32*s), bh = Math.max(pad*2 + lab*1.15 + tl.length*fsT*1.12, pim ? 190*s : 0);
         ctx.save(); ctx.shadowColor='rgba(0,0,0,.35)'; ctx.shadowBlur=18; ctx.shadowOffsetY=6;
         const g = ctx.createLinearGradient(0,y,0,y+bh); g.addColorStop(0,'#C0301F'); g.addColorStop(1,'#7E1812');
         rrect(ctx,bx,y,bw,bh,18); ctx.fillStyle=g; ctx.fill(); ctx.restore();
+        if(pim){ ctx.save(); rrect(ctx,bx,y,bw,bh,18); ctx.clip(); coverDraw(pim, bx, y, pwid, bh);
+          const gr = ctx.createLinearGradient(bx+pwid*0.6,0,bx+pwid,0); gr.addColorStop(0,'rgba(126,24,18,0)'); gr.addColorStop(1,'rgba(126,24,18,1)'); ctx.fillStyle=gr; ctx.fillRect(bx+pwid*0.6,y,pwid*0.4+1,bh); ctx.restore(); }
         rrect(ctx,bx,y,bw,bh,18); ctx.strokeStyle=G.gold; ctx.lineWidth=3; ctx.stroke();
         rrect(ctx,bx+8,y+8,bw-16,bh-16,12); ctx.strokeStyle='rgba(233,185,73,.45)'; ctx.lineWidth=1.2; ctx.stroke();
-        ctx.textAlign='left'; ctx.fillStyle=G.goldLt; ctx.font=`italic 700 ${lab}px ${FP}`; ctx.fillText('Promo de la casa', bx+pad, y+pad+lab*0.8);
-        let ty = y+pad+lab*1.15; ctx.fillStyle=G.cream; ctx.font=`700 ${fsT}px ${FB}`;
-        tl.forEach(l => { ty += fsT*1.08; ctx.fillText(l, bx+pad, ty); });
+        ctx.textAlign='left'; ctx.fillStyle=G.goldLt; ctx.font=`italic 700 ${lab}px ${FP}`; const off = (bh - (lab*1.15 + tl.length*fsT*1.12))/2; ctx.fillText('Promo de la casa', bx+pwid+pad, y+off+lab*0.8);
+        let ty = y + off + lab*1.15; ctx.fillStyle=G.cream; ctx.font=`700 ${fsT}px ${FB}`;
+        tl.forEach(l => { ty += fsT*1.08; ctx.fillText(l, bx+pwid+pad, ty); });
         if(pTxt){ ctx.textAlign='right'; ctx.fillStyle=G.gold; ctx.font=`400 ${fsP}px ${FA}`; ctx.fillText(pTxt, bx+bw-pad, y+bh/2+fsP*0.36); }
         y += bh + 22*s;
       }
-      section('Pollos y combos', itemsOf(d.pollos));
+      section('Pollos y combos', itemsOf(d.pollos), undefined, undefined, true);
       const bI = itemsOf(d.bebidas), eI = itemsOf(d.extras);
-      if(bI.length && eI.length){
+      if(bI.length && eI.length && !(useF && [...bI,...eI].some(x => getImg(fotoKey(x.n, x.foto))))){
         const y0 = y, mid = W/2;
         section('Bebidas', bI, L-40, mid-24); const y1 = y;
         y = y0; section('Extras', eI, mid+24, R+40); y = Math.max(y, y1);
       } else { section('Bebidas', bI); section('Extras', eI); }
     } else {
     section('Entradas', itemsOf(d.entradas));
-    section('Segundos', itemsOf(d.segundos));
+    section('Segundos', itemsOf(d.segundos), undefined, undefined, true);
     }
 
     if(!pollo && (d.refresco||'').trim()){
@@ -654,6 +788,7 @@ details[open] summary::after{content:"–"}
       ctx.textAlign='center'; ctx.fillStyle=T.muted; setLS(ctx,1);
       fit(ctx, d.nota, FB, 600, story?34:28, 16, W-200); ctx.fillText(d.nota, W/2, H-42-(story?40:30)); setLS(ctx,0);
     }
+    if(usedPhotos){ ctx.textAlign='right'; ctx.fillStyle=T.muted; ctx.font=`italic 700 ${story?20:16}px ${FP}`; ctx.fillText('Imágenes referenciales', W-58, H-54); }
     return {end:y, limit:FT-40};
   }
 
