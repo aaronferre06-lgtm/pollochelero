@@ -118,6 +118,14 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
 .qr{background:#FFFFFF;color:#241914;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid var(--line)}
 .qr canvas,.qr img{width:100%;max-width:180px;height:auto}
 .qr b{font-family:var(--display);font-weight:400;font-size:24px}
+.turnos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:var(--bg);padding-block:8px}
+.turno{border:3px solid var(--line);background:var(--paper);color:var(--ink);border-radius:16px;padding:10px 8px;font-family:var(--display);font-size:26px;line-height:1.05;display:flex;flex-direction:column;align-items:center;gap:2px}
+.turno small{font-family:var(--body);font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.turno[aria-pressed="true"]{background:var(--brasa);border-color:var(--brasa);color:var(--brasa-ink)}
+.turno[aria-pressed="true"] small{color:var(--oro)}
+.banda{background:var(--oro-soft);border-left:8px solid var(--oro);border-radius:12px;padding:12px 16px;font-family:var(--display);font-size:30px;display:flex;flex-direction:column;margin-top:10px}
+.banda.noche{background:var(--ink);color:var(--bg);border-left-color:var(--brasa)}
+.banda small{font-family:var(--body);font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;opacity:.8}
 .fila-ed{display:grid;grid-template-columns:minmax(0,1fr) 84px 48px;gap:8px;align-items:center}
 .fila-ed.sinp{grid-template-columns:minmax(0,1fr) 48px}
 .fila-ed textarea{resize:none;line-height:1.2;font-size:18px;min-height:58px}
@@ -238,6 +246,8 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     if(!ed.filas) ed.filas = FILAS.map(f => Object.assign({}, f));
     const grupos = SECS.slice(); ed.filas.forEach(f => { if(!grupos.some(g => norm(g) === norm(f.seccion))) grupos.push(f.seccion); });
     grupos.forEach(g => {
+      if(norm(g) === 'menu') out.push(el('div', {class:'banda'}, el('small', {text:'De día'}), 'Menú del día'));
+      if(norm(g) === norm('Pollos y combos')) out.push(el('div', {class:'banda noche'}, el('small', {text:'De noche'}), 'Pollería'));
       const filas = ed.filas.filter(f => norm(f.seccion) === norm(g));
       const conPrecio = !/^(entrada|refresco)/.test(norm(g));
       const caja = el('section', {class:'seccion'}, el('header', {}, el('h2', {text:g}),
@@ -284,7 +294,7 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
   }
 
   /* ---------- dónde está el cliente ---------- */
-  const st = { donde:'', mesa:0, nombre:'', nota:'', carrito:new Map(), enviado:null, numero:'' };
+  const st = { turno:'', donde:'', mesa:0, nombre:'', nota:'', carrito:new Map(), enviado:null, numero:'' };
   function leerHash(){
     const h = (location.hash||'').slice(1);
     const m = h.match(/^mesa-(\d{1,2})$/);
@@ -366,8 +376,16 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     out.push(el('ol', {class:'pasos', 'aria-label':'Cómo pedir'},
       el('li', {}, el('b', {text:'1'}), 'Toca lo que quieres'), el('li', {}, el('b', {text:'2'}), 'Revisa tu pedido abajo'), el('li', {}, el('b', {text:'3'}), 'Envíalo por WhatsApp')));
     const menu = C.menu.length ? seccion('menu', 'Menú de hoy', [C.entradas.length ? 'Viene con entrada' + (C.refresco ? ' y ' + C.refresco.toLowerCase() : '') : (C.refresco ? 'Con ' + C.refresco.toLowerCase() : ''), C.entradas.length ? 'Entradas: ' + C.entradas.join(', ') : ''], C.menu) : null;
+    const hayMenu = !!menu, hayPollo = C.secs.some(g => !/bebida/.test(norm(g.t)) && g.items.length);
+    if(!st.turno) st.turno = new Date().getHours() < 16 ? 'menu' : 'polleria';
+    if(st.turno === 'menu' && !hayMenu && hayPollo) st.turno = 'polleria';
+    if(st.turno === 'polleria' && !hayPollo && hayMenu) st.turno = 'menu';
+    if(hayMenu && hayPollo) out.push(el('div', {class:'turnos', role:'group', 'aria-label':'Qué carta ver'},
+      el('button', {type:'button', class:'turno', 'aria-pressed':String(st.turno === 'menu'), onclick:() => { st.turno = 'menu'; pintar(); window.scrollTo(0, 0); }}, el('small', {text:'De día'}), 'Menú del día'),
+      el('button', {type:'button', class:'turno', 'aria-pressed':String(st.turno === 'polleria'), onclick:() => { st.turno = 'polleria'; pintar(); window.scrollTo(0, 0); }}, el('small', {text:'De noche'}), 'Pollería')));
+    const bebidas = C.secs.map((g, i) => /bebida/.test(norm(g.t)) ? seccion('c' + i, g.t, [], g.items) : null).filter(Boolean);
     const carta = C.secs.map((g, i) => seccion('c' + i, g.t, [], g.items));
-    if(new Date().getHours() >= 17){ out.push(...carta); if(menu) out.push(menu); } else { if(menu) out.push(menu); out.push(...carta); }
+    if(st.turno === 'menu'){ if(menu) out.push(menu); out.push(...bebidas); } else out.push(...carta);
     if(!menu && !carta.length) out.push(el('p', {class:'aviso', text:'En este momento no estamos tomando pedidos por aquí. Acércate a caja.'}));
     out.push(el('p', {class:'pie'}, 'Fotos referenciales de ', el('a', {href:'https://commons.wikimedia.org', target:'_blank', rel:'noopener'}, 'Wikimedia Commons'), ', con licencias libres.'));
     const {q, t} = totales();
