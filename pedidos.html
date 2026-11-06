@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#B3261E">
+<title>Pide aquí · El Pollo Chelero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<style>
+
+/* Carta de pollería de barrio: brasa (rojo), dorado de la piel del pollo, papel de ticket. Una columna en el celular, botones grandes. */
+:root{
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#F6EFE4; --paper:#FFFDF8; --ink:#241914; --muted:#6E5E54; --line:#E5D8C6;
+  --brasa:#B3261E; --brasa-ink:#FFFFFF; --oro:#E9B949; --oro-soft:#FBEFCF; --ok:#1E8E4E; --ok-ink:#FFFFFF; --warn-bg:#FFF1C9;
+  --display:"Lilita One","Arial Black",system-ui,sans-serif;
+  --body:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17110F; --paper:#231B18; --ink:#F4EBE3; --muted:#B9A99D; --line:#3B2F2A;
+  --brasa:#E0533F; --brasa-ink:#1A0E0B; --oro:#E9B949; --oro-soft:#3A2E17; --ok:#3DBB72; --ok-ink:#06210F; --warn-bg:#3A3015; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17110F; --paper:#231B18; --ink:#F4EBE3; --muted:#B9A99D; --line:#3B2F2A;
+  --brasa:#E0533F; --brasa-ink:#1A0E0B; --oro:#E9B949; --oro-soft:#3A2E17; --ok:#3DBB72; --ok-ink:#06210F; --warn-bg:#3A3015; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:19px;line-height:1.4;font-weight:500;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 140px}
+#app{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.05;text-wrap:balance}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--oro);outline-offset:2px}
+.top{display:flex;align-items:center;gap:14px}
+.sello{flex:none;width:68px;height:68px;border-radius:50%;background:var(--brasa);color:var(--brasa-ink);display:grid;place-items:center;border:3px solid var(--oro)}
+.sello svg{width:40px;height:40px}
+.top h1{font-size:clamp(30px,8vw,42px);color:var(--brasa)}
+.top p{margin:4px 0 0;color:var(--muted);font-weight:600}
+.lugar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--ink);color:var(--bg);border-radius:14px;padding:14px 16px}
+.lugar b{font-family:var(--display);font-weight:400;font-size:30px;letter-spacing:.5px;white-space:nowrap}
+.lugar span{font-size:16px;opacity:.8}
+.pasos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
+.pasos li{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:16px;font-weight:600;line-height:1.2;display:flex;flex-direction:column;gap:4px}
+.pasos li b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--brasa)}
+.fotomenu{display:flex;flex-direction:column;gap:10px}
+.fotomenu img{width:100%;border-radius:12px;border:1px solid var(--line);display:block}
+.btn{border:0;border-radius:14px;padding:14px 18px;font-weight:700;font-size:19px;min-height:54px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;text-align:center}
+.btn.rojo{background:var(--brasa);color:var(--brasa-ink)}
+.btn.verde{background:var(--ok);color:var(--ok-ink);font-size:22px;min-height:64px;width:100%}
+.btn.claro{background:var(--paper);color:var(--ink);border:2px solid var(--line)}
+.btn.ancho{width:100%}
+.btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.seccion{display:flex;flex-direction:column;gap:12px}
+.seccion > header{display:flex;flex-direction:column;gap:2px;border-bottom:3px solid var(--oro);padding-bottom:6px}
+.seccion h2{font-size:32px}
+.seccion header p{margin:0;color:var(--muted);font-weight:600;font-size:17px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:620px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.plato{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.plato.tiene{border:3px solid var(--ok)}
+.foto{position:relative;aspect-ratio:4/3;width:100%;max-width:100%;background:var(--oro-soft);color:var(--brasa);display:grid;place-items:center;overflow:hidden}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.foto svg{width:46%;height:auto}
+.foto .ref{position:absolute;right:6px;bottom:6px;background:rgba(36,25,20,.72);color:#FFFDF8;font-size:12px;font-weight:600;padding:2px 7px;border-radius:6px}
+.fila .mini .lab{position:absolute;left:0;right:0;bottom:0;background:rgba(36,25,20,.7);color:#FFFDF8;font-size:11px;padding:1px 0}
+.plato .txt{padding:10px 12px 4px;display:flex;flex-direction:column;gap:2px;flex:1}
+.plato .nom{font-weight:700;font-size:19px;line-height:1.15}
+.plato .pre{font-family:var(--display);font-size:24px;color:var(--brasa)}
+.plato .acc{padding:8px 10px 10px}
+.plato .acc .btn{width:100%;min-height:52px;padding:10px}
+.cant{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;align-items:center;gap:6px}
+.cant button{height:52px;border-radius:12px;border:0;font-size:30px;font-weight:700;line-height:1}
+.cant .menos{background:var(--line);color:var(--ink)}
+.cant .mas{background:var(--ok);color:var(--ok-ink)}
+.cant output{text-align:center;font-family:var(--display);font-size:30px}
+.barra{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--ink);color:var(--bg);
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.barra .in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.barra .res{flex:1;min-width:0;line-height:1.15}
+.barra .res b{font-family:var(--display);font-weight:400;font-size:28px;display:block}
+.barra .res span{font-size:16px;opacity:.85}
+.barra .btn{flex:none}
+.velo{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.hoja{background:var(--bg);color:var(--ink);width:100%;max-width:760px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;
+  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px}
+.hoja .cab{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.hoja h2{font-size:30px}
+.lineas{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.lineas li{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px;align-items:center}
+.lineas .d{min-width:0}
+.lineas .d b{display:block;line-height:1.15}
+.lineas .d span{color:var(--muted);font-size:16px}
+.lineas .cant{grid-template-columns:44px minmax(0,1fr) 44px}
+.lineas .cant button{height:44px;font-size:24px}
+.lineas .cant output{font-size:24px}
+.total{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);font-size:32px;border-top:3px dashed var(--line);padding-top:10px}
+.preg{display:flex;flex-direction:column;gap:10px}
+.preg > b{font-size:21px}
+.dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.opc{border:2px solid var(--line);background:var(--paper);color:var(--ink);border-radius:14px;padding:14px 10px;font-weight:700;font-size:20px;min-height:60px}
+.opc[aria-pressed="true"]{border-color:var(--brasa);background:var(--brasa);color:var(--brasa-ink)}
+.mesas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.mesas .opc{font-family:var(--display);font-weight:400;font-size:26px;padding:8px}
+label.campo{display:flex;flex-direction:column;gap:6px;font-weight:700}
+label.campo small{font-weight:500;color:var(--muted);font-size:16px}
+.campo input,.campo textarea,.campo select{background:var(--paper);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:12px;font-size:19px;width:100%;min-width:0}
+.campo textarea{min-height:76px;resize:vertical}
+.aviso{background:var(--warn-bg);border-radius:12px;padding:12px 14px;font-weight:600;font-size:17px;margin:0}
+.listo{display:flex;flex-direction:column;gap:14px;text-align:center;align-items:center}
+.listo .num{font-family:var(--display);font-size:64px;color:var(--brasa);line-height:1}
+.listo p{margin:0}
+.copiar{width:100%;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px;white-space:pre-wrap;font-size:16px;margin:0;overflow-wrap:anywhere}
+.cel{font-family:var(--display);font-size:28px;letter-spacing:1px;user-select:all}
+.chips{display:flex;flex-direction:column;gap:10px}
+.qrs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:620px){.qrs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.qr{background:#FFFFFF;color:#241914;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid var(--line)}
+.qr canvas,.qr img{width:100%;max-width:180px;height:auto}
+.qr b{font-family:var(--display);font-weight:400;font-size:24px}
+.pie{color:var(--muted);font-size:15px;text-align:center;margin:8px 0 0}
+.pie a{color:inherit}
+.cargando .foto{animation:lat 1.2s ease-in-out infinite alternate}
+@keyframes lat{from{opacity:.55}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.cargando .foto{animation:none}}
+@media print{.barra,.toast,.noimp{display:none!important}body{background:#fff;padding:0}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:30;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:700;max-width:calc(100% - 32px);text-align:center}
+@media (prefers-reduced-motion:no-preference){.plato.tiene{transition:border-color .2s}}
+</style>
+</head>
+<body>
+<div id="app"><p>Cargando la carta…</p></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="fotos.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  const app = document.getElementById('app');
+  const F = window.FotosPlatos;
+
+  /* ---------- utilidades ---------- */
+  const el = (tag, attrs, ...kids) => {
+    const n = document.createElement(tag);
+    if(attrs) for(const [k,v] of Object.entries(attrs)){
+      if(v == null || v === false) continue;
+      if(k === 'class') n.className = v;
+      else if(k === 'text') n.textContent = v;
+      else if(k === 'html') n.innerHTML = v;
+      else if(k.startsWith('on')) n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? '' : v);
+    }
+    kids.flat().forEach(c => { if(c == null || c === false) return; n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  };
+  const num = p => { const n = parseFloat(String(p||'').replace(',','.').replace(/[^\d.]/g,'')); return isNaN(n) ? 0 : n; };
+  const sol = n => 'S/ ' + n.toFixed(2);
+  const norm = t => (t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+  function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 3500); }
+
+  const ICON = {
+    pollo:'<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="27" cy="27" rx="19" ry="16" transform="rotate(-35 27 27)" fill="currentColor"/><rect x="38" y="37" width="7" height="16" rx="3" transform="rotate(-45 41 45)" fill="currentColor"/><circle cx="51" cy="50" r="5" fill="currentColor"/><circle cx="46" cy="55" r="5" fill="currentColor"/></svg>',
+    bebida:'<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="25" y="4" width="14" height="8" rx="2" fill="currentColor"/><path d="M26 12h12v8c6 4 8 8 8 14v24a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4V34c0-6 2-10 8-14z" fill="currentColor"/></svg>',
+    plato:'<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="34" r="20" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="32" cy="34" r="10" fill="currentColor"/><rect x="5" y="10" width="4" height="46" rx="2" fill="currentColor"/><rect x="55" y="10" width="4" height="46" rx="2" fill="currentColor"/></svg>'
+  };
+  const SELLO = '<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4c4 10 14 14 14 28a14 14 0 0 1-28 0c0-8 4-12 6-16 2 6 4 8 6 8-2-8 0-14 2-20z" fill="currentColor"/></svg>';
+
+  /* ---------- la carta ---------- */
+  let C = {wa:'51939738128', mesas:8, entradas:[], refresco:'', menu:[], secs:[]};
+  function armarCarta(cfg, filas){
+    const c = {wa:String(cfg.wa||'').replace(/\D/g,'') || '51939738128', mesas:Math.max(1, Math.min(30, parseInt(cfg.mesas,10) || 8)), entradas:[], refresco:'', menu:[], secs:[]};
+    let n = 0;
+    filas.forEach(f => {
+      const sec = (f.seccion||'').trim(), plato = (f.plato||'').trim(); if(!sec || !plato) return;
+      const s = norm(sec);
+      if(s.startsWith('entrada')){ c.entradas.push(plato); return; }
+      if(s.startsWith('refresco')){ c.refresco = plato; return; }
+      const it = {id:'i' + (n++), n:plato, p:num(f.precio), f:(f.foto||'').trim(), sec};
+      if(s.startsWith('menu')){ it.menu = true; c.menu.push(it); return; }
+      let g = c.secs.find(x => norm(x.t) === s); if(!g){ g = {t:sec, items:[]}; c.secs.push(g); }
+      g.items.push(it);
+    });
+    return c;
+  }
+  function csv(t){
+    const rows = []; let row = [], cur = '', q = false;
+    for(let i = 0; i < t.length; i++){ const ch = t[i];
+      if(q){ if(ch === '"'){ if(t[i+1] === '"'){ cur += '"'; i++; } else q = false; } else cur += ch; }
+      else if(ch === '"') q = true; else if(ch === ','){ row.push(cur); cur = ''; } else if(ch === '\n'){ row.push(cur); rows.push(row); row = []; cur = ''; } else if(ch !== '\r') cur += ch; }
+    if(cur || row.length){ row.push(cur); rows.push(row); }
+    return rows;
+  }
+  function filasDeHoja(t){
+    const r = csv(t); if(!r.length) return [];
+    const h = r[0].map(norm), col = k => h.findIndex(x => x.startsWith(k));
+    const cs = col('secc'), cp = col('plato'), cr = col('precio'), cf = col('foto');
+    return r.slice(1).map(x => ({seccion:x[cs], plato:x[cp], precio:cr >= 0 ? x[cr] : '', foto:cf >= 0 ? x[cf] : ''}));
+  }
+  function urlHoja(u){ const m = String(u||'').match(/\/d\/([a-zA-Z0-9_-]{20,})/); return m ? 'https://docs.google.com/spreadsheets/d/' + m[1] + '/gviz/tq?tqx=out:csv' : ''; }
+  async function cargar(){
+    const cfg = await fetch('carta.json', {cache:'no-cache'}).then(r => r.json());
+    let filas = cfg.filas || [];
+    const h = urlHoja(cfg.hoja);
+    if(h){ try{ const t = await fetch(h + '&_=' + Date.now()).then(r => { if(!r.ok) throw 0; return r.text(); }); const f = filasDeHoja(t); if(f.length) filas = f; }catch(e){} }
+    C = armarCarta(cfg, filas);
+  }
+
+  /* ---------- fotos ---------- */
+  function urlFoto(it){
+    if(it.f) return it.f;
+    const k = F.fija(it.n); if(k && F.FIJAS[k]) return F.FIJAS[k].u;
+    const g = F.guardada(it.n); if(g) return g.u;
+    return g === null ? '' : undefined;   // undefined = todavía buscando
+  }
+  function icono(it){ const s = norm(it.sec); return /bebida|gaseosa|refresco/.test(s) ? ICON.bebida : /pollo/.test(s) ? ICON.pollo : ICON.plato; }
+  function fotoDe(it){
+    const u = urlFoto(it), box = el('div', {class:'foto'});
+    const poner = src => { box.innerHTML = ''; const im = el('img', {src, alt:'', loading:'lazy'}); im.onerror = () => { box.innerHTML = icono(it); }; box.appendChild(im); if(!it.f) box.appendChild(el('span', {class:'ref', text:'Foto referencial'})); };
+    if(u) poner(u);
+    else { box.innerHTML = icono(it); if(u === undefined){ F.buscar(it.n).then(r => { if(r) poner(r.u); }); } }
+    return box;
+  }
+
+  /* ---------- dónde está el cliente ---------- */
+  const st = { donde:'', mesa:0, nombre:'', nota:'', carrito:new Map(), enviado:null, numero:'' };
+  function leerHash(){
+    const h = (location.hash||'').slice(1);
+    const m = h.match(/^mesa-(\d{1,2})$/);
+    if(m){ st.donde = 'mesa'; st.mesa = +m[1]; }
+    else if(h === 'llevar'){ st.donde = 'llevar'; st.mesa = 0; }
+  }
+  leerHash();
+  window.addEventListener('hashchange', () => { leerHash(); pintar(); });
+
+  /* ---------- carrito ---------- */
+  function buscar(id){
+    for(const s of C.menu) if(s.id === id) return s;
+    for(const g of C.secs) for(const it of g.items) if(it.id === id) return it;
+    return null;
+  }
+  function cantDe(id){ let n = 0; st.carrito.forEach(l => { if(l.id === id) n += l.q; }); return n; }
+  function sumar(id, entrada, d){
+    const k = id + '|' + (entrada||''), l = st.carrito.get(k) || {id, entrada:entrada||'', q:0};
+    l.q += d; if(l.q <= 0) st.carrito.delete(k); else st.carrito.set(k, l);
+  }
+  function quitarUno(id){ const ks = [...st.carrito.keys()].filter(k => k.startsWith(id + '|')); if(ks.length){ const l = st.carrito.get(ks[ks.length-1]); sumar(id, l.entrada, -1); } }
+  function totales(){ let q = 0, t = 0; st.carrito.forEach(l => { const it = buscar(l.id); if(!it) return; q += l.q; t += l.q * it.p; }); return {q, t}; }
+  function textoPedido(n){
+    const out = ['PEDIDO ' + n + ' - ' + (st.donde === 'mesa' ? 'MESA ' + st.mesa : 'PARA LLEVAR'), ''];
+    st.carrito.forEach(l => { const it = buscar(l.id); if(!it) return;
+      const nom = it.menu ? 'Menú: ' + it.n + (C.entradas.length ? (l.entrada ? ', entrada ' + l.entrada : ', sin entrada') : '') : it.n;
+      out.push(l.q + ' x ' + nom + '  (' + sol(l.q * it.p) + ')'); });
+    out.push('');
+    if(st.nota.trim()) out.push('Nota: ' + st.nota.trim());
+    out.push('TOTAL: ' + sol(totales().t));
+    if(st.nombre.trim()) out.push('Nombre: ' + st.nombre.trim());
+    return out.join('\n');
+  }
+
+  /* ---------- pantalla del cliente ---------- */
+  function tarjeta(it){
+    const q = cantDe(it.id), acc = el('div', {class:'acc'});
+    if(q === 0) acc.appendChild(el('button', {type:'button', class:'btn rojo', onclick:() => agregar(it)}, 'Agregar'));
+    else acc.appendChild(el('div', {class:'cant'},
+      el('button', {type:'button', class:'menos', 'aria-label':'Quitar uno de ' + it.n, onclick:() => { quitarUno(it.id); pintar(); }}, '−'),
+      el('output', {'aria-label':'Cantidad de ' + it.n}, String(q)),
+      el('button', {type:'button', class:'mas', 'aria-label':'Uno más de ' + it.n, onclick:() => agregar(it)}, '+')));
+    return el('article', {class:'plato' + (q ? ' tiene' : '')}, fotoDe(it),
+      el('div', {class:'txt'}, el('span', {class:'nom', text:it.n}), it.p ? el('span', {class:'pre', text:sol(it.p)}) : null), acc);
+  }
+  function agregar(it){
+    if(it.menu && C.entradas.length){ elegirEntrada(it); return; }
+    sumar(it.id, '', 1); pintar();
+  }
+  function hojaModal(label, contenido){
+    const v = el('div', {class:'velo', role:'dialog', 'aria-modal':'true', 'aria-label':label});
+    v.addEventListener('click', e => { if(e.target === v) cerrar(); });
+    const h = el('div', {class:'hoja'}); v.appendChild(h);
+    function cerrar(){ v.remove(); pintar(); }
+    contenido(h, cerrar);
+    document.body.appendChild(v);
+    return {v, h, cerrar};
+  }
+  function elegirEntrada(it){
+    hojaModal('Elegir entrada', (h, cerrar) => {
+      h.append(el('div', {class:'cab'}, el('h2', {text:'¿Con qué entrada?'}), el('button', {type:'button', class:'btn claro', onclick:cerrar}, 'Cerrar')),
+        el('p', {class:'aviso', text:'Menú: ' + it.n}),
+        el('div', {class:'chips'},
+          C.entradas.map(e => el('button', {type:'button', class:'opc', onclick:() => { sumar(it.id, e, 1); cerrar(); toast('Agregado: menú con ' + e.toLowerCase()); }}, e)),
+          el('button', {type:'button', class:'opc', onclick:() => { sumar(it.id, '', 1); cerrar(); toast('Agregado: menú sin entrada'); }}, 'Sin entrada')));
+    });
+  }
+  function seccion(id, titulo, subs, items){
+    return el('section', {class:'seccion', 'aria-labelledby':'s-' + id},
+      el('header', {}, el('h2', {id:'s-' + id, text:titulo}), subs.filter(Boolean).map(t => el('p', {text:t}))),
+      el('div', {class:'grid'}, items.map(tarjeta)));
+  }
+  function vistaCliente(){
+    const out = [];
+    out.push(el('div', {class:'top'}, el('div', {class:'sello', html:SELLO}),
+      el('div', {}, el('h1', {text:'El Pollo Chelero'}), el('p', {text:'Pide aquí y te lo llevamos'}))));
+    if(st.donde === 'mesa') out.push(el('div', {class:'lugar'}, el('b', {text:'Mesa ' + st.mesa}), el('span', {text:'Tu pedido llega a la cocina'})));
+    if(st.donde === 'llevar') out.push(el('div', {class:'lugar'}, el('b', {text:'Para llevar'}), el('span', {text:'Te llamamos cuando esté listo'})));
+    out.push(el('ol', {class:'pasos', 'aria-label':'Cómo pedir'},
+      el('li', {}, el('b', {text:'1'}), 'Toca lo que quieres'), el('li', {}, el('b', {text:'2'}), 'Revisa tu pedido abajo'), el('li', {}, el('b', {text:'3'}), 'Envíalo por WhatsApp')));
+    const menu = C.menu.length ? seccion('menu', 'Menú de hoy', [C.entradas.length ? 'Viene con entrada' + (C.refresco ? ' y ' + C.refresco.toLowerCase() : '') : (C.refresco ? 'Con ' + C.refresco.toLowerCase() : ''), C.entradas.length ? 'Entradas: ' + C.entradas.join(', ') : ''], C.menu) : null;
+    const carta = C.secs.map((g, i) => seccion('c' + i, g.t, [], g.items));
+    if(new Date().getHours() >= 17){ out.push(...carta); if(menu) out.push(menu); } else { if(menu) out.push(menu); out.push(...carta); }
+    if(!menu && !carta.length) out.push(el('p', {class:'aviso', text:'En este momento no estamos tomando pedidos por aquí. Acércate a caja.'}));
+    out.push(el('p', {class:'pie'}, 'Fotos referenciales de ', el('a', {href:'https://commons.wikimedia.org', target:'_blank', rel:'noopener'}, 'Wikimedia Commons'), ', con licencias libres.'));
+    const {q, t} = totales();
+    if(q > 0) out.push(el('div', {class:'barra'}, el('div', {class:'in'},
+      el('div', {class:'res'}, el('b', {text:sol(t)}), el('span', {text:q + (q === 1 ? ' cosa en tu pedido' : ' cosas en tu pedido')})),
+      el('button', {type:'button', class:'btn verde', style:'width:auto;font-size:20px', onclick:abrirPedido}, 'Ver y enviar'))));
+    return out;
+  }
+
+  /* ---------- hoja del pedido ---------- */
+  function abrirPedido(){
+    hojaModal('Tu pedido', (hoja, cerrar) => {
+      function armar(){
+        hoja.innerHTML = '';
+        if(st.enviado){ listo(); return; }
+        hoja.appendChild(el('div', {class:'cab'}, el('h2', {text:'Tu pedido'}), el('button', {type:'button', class:'btn claro', onclick:cerrar}, 'Seguir eligiendo')));
+        const ul = el('ul', {class:'lineas'});
+        st.carrito.forEach(l => { const it = buscar(l.id); if(!it) return;
+          ul.appendChild(el('li', {},
+            el('div', {class:'d'}, el('b', {text:(it.menu ? 'Menú: ' : '') + it.n}), el('span', {text:(it.menu && C.entradas.length ? (l.entrada ? 'Entrada: ' + l.entrada + ' · ' : 'Sin entrada · ') : '') + sol(l.q * it.p)})),
+            el('div', {class:'cant'},
+              el('button', {type:'button', class:'menos', 'aria-label':'Quitar uno', onclick:() => { sumar(l.id, l.entrada, -1); if(!st.carrito.size){ cerrar(); return; } armar(); }}, '−'),
+              el('output', {}, String(l.q)),
+              el('button', {type:'button', class:'mas', 'aria-label':'Uno más', onclick:() => { sumar(l.id, l.entrada, 1); armar(); }}, '+')))); });
+        hoja.append(ul, el('div', {class:'total'}, el('span', {text:'Total'}), el('span', {text:sol(totales().t)})));
+        const preg = el('div', {class:'preg'}, el('b', {text:'¿Comes aquí o es para llevar?'}),
+          el('div', {class:'dos'},
+            el('button', {type:'button', class:'opc', 'aria-pressed':String(st.donde === 'mesa'), onclick:() => { st.donde = 'mesa'; armar(); }}, 'Como aquí'),
+            el('button', {type:'button', class:'opc', 'aria-pressed':String(st.donde === 'llevar'), onclick:() => { st.donde = 'llevar'; st.mesa = 0; armar(); }}, 'Para llevar')));
+        if(st.donde === 'mesa'){
+          const ms = el('div', {class:'mesas'});
+          for(let i = 1; i <= C.mesas; i++) ms.appendChild(el('button', {type:'button', class:'opc', 'aria-pressed':String(st.mesa === i), 'aria-label':'Mesa ' + i, onclick:() => { st.mesa = i; armar(); }}, String(i)));
+          preg.append(el('b', {text:'¿En qué mesa estás?'}), ms);
+        }
+        hoja.appendChild(preg);
+        const nom = el('input', {type:'text', id:'f-nombre', autocomplete:'given-name', placeholder:'Ej.: Rosa'}); nom.value = st.nombre;
+        nom.addEventListener('input', () => { st.nombre = nom.value; });
+        const nota = el('textarea', {id:'f-nota', placeholder:'Ej.: sin ensalada, papas bien doradas'}); nota.value = st.nota;
+        nota.addEventListener('input', () => { st.nota = nota.value; });
+        hoja.append(el('label', {class:'campo', for:'f-nombre'}, 'Tu nombre', el('small', {text:st.donde === 'llevar' ? 'Para llamarte cuando esté listo.' : 'Opcional.'}), nom),
+          el('label', {class:'campo', for:'f-nota'}, '¿Algo que debamos saber?', el('small', {text:'Opcional.'}), nota));
+        const falta = !st.donde ? 'Elige si comes aquí o es para llevar.' : (st.donde === 'mesa' && !st.mesa ? 'Elige el número de tu mesa.' : '');
+        if(falta) hoja.appendChild(el('p', {class:'aviso', text:falta}));
+        const n = st.numero || (st.numero = String(100 + Math.floor(Math.random()*900)));
+        const env = el('a', {class:'btn verde', href:'#', target:'_blank', rel:'noopener', 'aria-disabled':falta ? 'true' : null}, 'Enviar pedido por WhatsApp');
+        const enlace = () => { env.href = 'https://wa.me/' + C.wa + '?text=' + encodeURIComponent(textoPedido(n)); };
+        enlace(); nom.addEventListener('input', enlace); nota.addEventListener('input', enlace);
+        env.addEventListener('click', ev => { if(falta){ ev.preventDefault(); return; } enlace(); st.enviado = {n, txt:textoPedido(n)}; setTimeout(armar, 400); });
+        hoja.append(env, el('p', {style:'margin:0;color:var(--muted);font-size:16px;text-align:center', text:'Se abre WhatsApp con tu pedido ya escrito. Solo aprietas enviar.'}));
+      }
+      function listo(){
+        const e = st.enviado, cel = C.wa.replace(/^51/, '').replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+        hoja.appendChild(el('div', {class:'listo'},
+          el('p', {text:'Tu número de pedido'}), el('div', {class:'num', text:e.n}),
+          el('p', {class:'aviso', text:'En WhatsApp aprieta la flechita verde para mandarlo. Si no lo mandas, no nos llega.'}),
+          el('p', {text:'¿No se abrió WhatsApp? Escríbenos al'}), el('span', {class:'cel', text:cel}),
+          el('p', {text:'y pega este pedido:'}), el('pre', {class:'copiar', id:'txt-pedido', text:e.txt}),
+          el('button', {type:'button', class:'btn claro ancho', onclick:ev => { const b = ev.currentTarget;
+            const sel = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('txt-pedido')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Texto marcado, ahora cópialo'; };
+            try{ navigator.clipboard.writeText(e.txt).then(() => { b.textContent = 'Copiado'; }, sel); }catch(x){ sel(); } }}, 'Copiar el pedido'),
+          el('button', {type:'button', class:'btn rojo ancho', onclick:() => { st.carrito.clear(); st.enviado = null; st.nota = ''; st.numero = ''; cerrar(); window.scrollTo(0,0); }}, 'Listo, hacer otro pedido')));
+      }
+      armar();
+    });
+  }
+
+  /* ---------- carteles QR (pedidos.html#carteles) ---------- */
+  function base(){ return location.href.split('#')[0].split('?')[0]; }
+  function qrCanvas(text, size){
+    if(typeof QRCode === 'undefined') return null;
+    const tmp = document.createElement('div');
+    new QRCode(tmp, {text, width:size, height:size, colorDark:'#000000', colorLight:'#FFFFFF', correctLevel:QRCode.CorrectLevel.M});
+    return tmp.querySelector('canvas');
+  }
+  function rr(x, X, Y, w, h, r){ x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); }
+  async function hojaQR(ds, n){
+    const W = 1240, H = 1754, cw = W/2, ch = H/3, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d'); try{ await document.fonts.load('60px "Lilita One"'); }catch(e){}
+    x.fillStyle = '#FFFFFF'; x.fillRect(0, 0, W, H); x.textAlign = 'center';
+    ds.forEach((d, i) => { const cx = (i % 2)*cw, cy = Math.floor(i/2)*ch, p = 28;
+      x.fillStyle = '#B3261E'; rr(x, cx+p, cy+p, cw-p*2, ch-p*2, 26); x.fill();
+      x.fillStyle = '#FFFDF8'; rr(x, cx+p+14, cy+p+96, cw-p*2-28, ch-p*2-110, 18); x.fill();
+      x.fillStyle = '#E9B949'; x.font = '44px "Lilita One","Arial Black",sans-serif'; x.fillText('EL POLLO CHELERO', cx+cw/2, cy+p+64);
+      x.fillStyle = '#241914'; x.font = '62px "Lilita One","Arial Black",sans-serif'; x.fillText(d.t, cx+cw/2, cy+p+168);
+      const q = qrCanvas(d.u, 300); if(q) x.drawImage(q, cx+cw/2-150, cy+p+190, 300, 300);
+      x.font = '600 26px "Barlow Semi Condensed","Arial Narrow",sans-serif'; x.fillText('Apunta la cámara de tu celular aquí,', cx+cw/2, cy+p+530); x.fillText('elige tu comida y envíala por WhatsApp', cx+cw/2, cy+p+562);
+      x.setLineDash([10,10]); x.strokeStyle = '#BBBBBB'; x.lineWidth = 2; x.strokeRect(cx, cy, cw, ch); x.setLineDash([]); });
+    const a = document.createElement('a'); a.download = 'qr-mesas-hoja-' + n + '.png'; a.href = c.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove();
+  }
+  function vistaCarteles(){
+    const ds = []; for(let i = 1; i <= C.mesas; i++) ds.push({t:'MESA ' + i, u:base() + '#mesa-' + i}); ds.push({t:'PARA LLEVAR', u:base() + '#llevar'});
+    const box = el('div', {class:'qrs'});
+    ds.forEach(d => { const c = qrCanvas(d.u, 360); box.appendChild(el('div', {class:'qr'}, c || el('span', {text:'Sin internet para el QR'}), el('b', {text:d.t}))); });
+    const hojas = Math.ceil(ds.length / 6), bts = el('div', {class:'dos noimp'});
+    for(let h = 0; h < hojas; h++) bts.appendChild(el('button', {type:'button', class:'btn rojo', onclick:() => hojaQR(ds.slice(h*6, h*6+6), h+1)}, hojas > 1 ? 'Descargar hoja ' + (h+1) : 'Descargar hoja'));
+    return [el('h1', {text:'Carteles QR', style:'color:var(--brasa)'}),
+      el('p', {class:'noimp', style:'margin:0', text:'Cada mesa tiene su QR y el pedido llega con ese número de mesa. El de "Para llevar" va en el mostrador. Descarga las hojas, imprímelas y plastifícalas.'}),
+      bts, box, el('a', {href:base(), class:'btn claro noimp'}, 'Volver a la carta')];
+  }
+
+  /* ---------- pintar ---------- */
+  function pintar(){
+    const y = window.scrollY; app.innerHTML = '';
+    (location.hash === '#carteles' ? vistaCarteles() : vistaCliente()).filter(Boolean).forEach(p => app.appendChild(p));
+    window.scrollTo(0, y);
+  }
+  cargar().catch(() => { toast('No se pudo cargar la carta. Revisa el internet.'); }).then(pintar);
+})();
+</script>
+</body>
+</html>
