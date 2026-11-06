@@ -1,28 +1,109 @@
 {
   "wa": "51939738128",
   "mesas": 8,
-  "hoja": "",
+  "hoja": "https://docs.google.com/spreadsheets/d/1fdO0il1W53NYGLI8bZziNXrOuaDbWUEccK8KaFKi9KI/edit",
+  "editar": "",
   "filas": [
-    {"seccion": "Entrada", "plato": "Papa a la huancaína"},
-    {"seccion": "Entrada", "plato": "Sopa de casa"},
-    {"seccion": "Entrada", "plato": "Ceviche de pota"},
-    {"seccion": "Refresco", "plato": "Chicha morada"},
-    {"seccion": "Menú", "plato": "Arroz con pollo", "precio": "10"},
-    {"seccion": "Menú", "plato": "Seco de res con frejoles", "precio": "10"},
-    {"seccion": "Menú", "plato": "Ají de gallina", "precio": "10"},
-    {"seccion": "Menú", "plato": "Tallarín saltado", "precio": "10"},
-    {"seccion": "Menú", "plato": "Chicharrón de pescado", "precio": "12"},
-    {"seccion": "Pollos y combos", "plato": "1 pollo entero con papas y ensalada", "precio": "62"},
-    {"seccion": "Pollos y combos", "plato": "1/2 pollo con papas y ensalada", "precio": "33"},
-    {"seccion": "Pollos y combos", "plato": "1/4 de pollo con papas y ensalada", "precio": "17"},
-    {"seccion": "Pollos y combos", "plato": "1/8 de pollo con papas y ensalada", "precio": "10"},
-    {"seccion": "Pollos y combos", "plato": "Mostrito (1/4 de pollo con chaufa)", "precio": "19"},
-    {"seccion": "Bebidas", "plato": "Gaseosa 1.5 L", "precio": "9"},
-    {"seccion": "Bebidas", "plato": "Gaseosa personal", "precio": "3.5"},
-    {"seccion": "Bebidas", "plato": "Chicha morada (jarra)", "precio": "10"},
-    {"seccion": "Bebidas", "plato": "Cerveza", "precio": "8"},
-    {"seccion": "Extras", "plato": "Porción de papas", "precio": "6"},
-    {"seccion": "Extras", "plato": "Porción de ensalada", "precio": "4"},
-    {"seccion": "Extras", "plato": "Arroz chaufa", "precio": "8"}
+    {
+      "seccion": "Entrada",
+      "plato": "Papa a la huancaína"
+    },
+    {
+      "seccion": "Entrada",
+      "plato": "Sopa de casa"
+    },
+    {
+      "seccion": "Entrada",
+      "plato": "Ceviche de pota"
+    },
+    {
+      "seccion": "Refresco",
+      "plato": "Chicha morada"
+    },
+    {
+      "seccion": "Menú",
+      "plato": "Arroz con pollo",
+      "precio": "10"
+    },
+    {
+      "seccion": "Menú",
+      "plato": "Seco de res con frejoles",
+      "precio": "10"
+    },
+    {
+      "seccion": "Menú",
+      "plato": "Ají de gallina",
+      "precio": "10"
+    },
+    {
+      "seccion": "Menú",
+      "plato": "Tallarín saltado",
+      "precio": "10"
+    },
+    {
+      "seccion": "Menú",
+      "plato": "Chicharrón de pescado",
+      "precio": "12"
+    },
+    {
+      "seccion": "Pollos y combos",
+      "plato": "1 pollo entero con papas y ensalada",
+      "precio": "62"
+    },
+    {
+      "seccion": "Pollos y combos",
+      "plato": "1/2 pollo con papas y ensalada",
+      "precio": "33"
+    },
+    {
+      "seccion": "Pollos y combos",
+      "plato": "1/4 de pollo con papas y ensalada",
+      "precio": "17"
+    },
+    {
+      "seccion": "Pollos y combos",
+      "plato": "1/8 de pollo con papas y ensalada",
+      "precio": "10"
+    },
+    {
+      "seccion": "Pollos y combos",
+      "plato": "Mostrito (1/4 de pollo con chaufa)",
+      "precio": "19"
+    },
+    {
+      "seccion": "Bebidas",
+      "plato": "Gaseosa 1.5 L",
+      "precio": "9"
+    },
+    {
+      "seccion": "Bebidas",
+      "plato": "Gaseosa personal",
+      "precio": "3.5"
+    },
+    {
+      "seccion": "Bebidas",
+      "plato": "Chicha morada (jarra)",
+      "precio": "10"
+    },
+    {
+      "seccion": "Bebidas",
+      "plato": "Cerveza",
+      "precio": "8"
+    },
+    {
+      "seccion": "Extras",
+      "plato": "Porción de papas",
+      "precio": "6"
+    },
+    {
+      "seccion": "Extras",
+      "plato": "Porción de ensalada",
+      "precio": "4"
+    },
+    {
+      "seccion": "Extras",
+      "plato": "Arroz chaufa",
+      "precio": "8"
+    }
   ]
 }

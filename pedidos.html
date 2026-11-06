@@ -118,6 +118,12 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
 .qr{background:#FFFFFF;color:#241914;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid var(--line)}
 .qr canvas,.qr img{width:100%;max-width:180px;height:auto}
 .qr b{font-family:var(--display);font-weight:400;font-size:24px}
+.fila-ed{display:grid;grid-template-columns:minmax(0,1fr) 84px 48px;gap:8px;align-items:center}
+.fila-ed.sinp{grid-template-columns:minmax(0,1fr) 48px}
+.fila-ed textarea{resize:none;line-height:1.2;font-size:18px;min-height:58px}
+.fila-ed input,.fila-ed textarea{background:var(--paper);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:12px;font-size:19px;width:100%;min-width:0}
+.fila-ed .x{height:52px;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--muted);font-size:26px}
+.guardar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:4}
 .pie{color:var(--muted);font-size:15px;text-align:center;margin:8px 0 0}
 .pie a{color:inherit}
 .cargando .foto{animation:lat 1.2s ease-in-out infinite alternate}
@@ -196,13 +202,69 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     const cs = col('secc'), cp = col('plato'), cr = col('precio'), cf = col('foto');
     return r.slice(1).map(x => ({seccion:x[cs], plato:x[cp], precio:cr >= 0 ? x[cr] : '', foto:cf >= 0 ? x[cf] : ''}));
   }
-  function urlHoja(u){ const m = String(u||'').match(/\/d\/([a-zA-Z0-9_-]{20,})/); return m ? 'https://docs.google.com/spreadsheets/d/' + m[1] + '/gviz/tq?tqx=out:csv' : ''; }
+  function urlHoja(u){ const m = String(u||'').match(/\/d\/([a-zA-Z0-9_-]{20,})/); return m ? 'https://docs.google.com/spreadsheets/d/' + m[1] + '/gviz/tq?tqx=out:csv&headers=1' : ''; }
   async function cargar(){
     const cfg = await fetch('carta.json', {cache:'no-cache'}).then(r => r.json());
     let filas = cfg.filas || [];
     const h = urlHoja(cfg.hoja);
     if(h){ try{ const t = await fetch(h + '&_=' + Date.now()).then(r => { if(!r.ok) throw 0; return r.text(); }); const f = filasDeHoja(t); if(f.length) filas = f; }catch(e){} }
+    CFG = cfg; FILAS = filas.map(f => ({seccion:(f.seccion||'').trim(), plato:(f.plato||'').trim(), precio:String(f.precio == null ? '' : f.precio).trim(), foto:(f.foto||'').trim()})).filter(f => f.seccion && f.plato);
     C = armarCarta(cfg, filas);
+  }
+  let CFG = {}, FILAS = [];
+
+  /* ---------- editar la carta (pedidos.html#editar) ---------- */
+  const SECS = ['Menú', 'Entrada', 'Refresco', 'Pollos y combos', 'Bebidas', 'Extras'];
+  const ed = {clave:'', ok:false, filas:null, guardando:false, msg:''};
+  try{ ed.clave = sessionStorage.getItem('clave-carta') || ''; }catch(e){}
+  async function llamar(datos){
+    if(!CFG.editar) throw new Error('sin-script');
+    const r = await fetch(CFG.editar, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(datos)});
+    return r.json();
+  }
+  function vistaEditar(){
+    const out = [el('div', {class:'top'}, el('div', {class:'sello', html:SELLO}), el('div', {}, el('h1', {text:'Editar carta'}), el('p', {text:'Lo que guardes aquí lo ven los clientes al toque'})))];
+    if(!CFG.editar){ out.push(el('p', {class:'aviso', text:'Falta activar la edición. Aaron tiene que terminar de configurar la hoja de Google.'})); return out; }
+    if(!ed.ok){
+      const inp = el('input', {type:'password', id:'f-clave', inputmode:'numeric', autocomplete:'off', placeholder:'••••'}); inp.value = ed.clave;
+      const entrar = async () => { ed.clave = inp.value.trim(); ed.msg = 'Revisando…'; pintar();
+        try{ const r = await llamar({accion:'probar', clave:ed.clave}); if(r.ok){ ed.ok = true; ed.msg = ''; try{ sessionStorage.setItem('clave-carta', ed.clave); }catch(e){} } else ed.msg = 'Esa clave no es. Prueba otra vez.'; }
+        catch(e){ ed.msg = 'No hay conexión con la hoja. Revisa el internet.'; } pintar(); };
+      inp.addEventListener('keydown', e => { if(e.key === 'Enter') entrar(); });
+      out.push(el('label', {class:'campo', for:'f-clave'}, 'Clave', el('small', {text:'Los 4 números que les dio Aaron.'}), inp),
+        el('button', {type:'button', class:'btn rojo ancho', onclick:entrar}, 'Entrar'), ed.msg ? el('p', {class:'aviso', text:ed.msg}) : null);
+      return out;
+    }
+    if(!ed.filas) ed.filas = FILAS.map(f => Object.assign({}, f));
+    const grupos = SECS.slice(); ed.filas.forEach(f => { if(!grupos.some(g => norm(g) === norm(f.seccion))) grupos.push(f.seccion); });
+    grupos.forEach(g => {
+      const filas = ed.filas.filter(f => norm(f.seccion) === norm(g));
+      const conPrecio = !/^(entrada|refresco)/.test(norm(g));
+      const caja = el('section', {class:'seccion'}, el('header', {}, el('h2', {text:g}),
+        el('p', {text:g === 'Menú' ? 'Los segundos del día con su precio.' : g === 'Entrada' ? 'Las entradas del menú, sin precio.' : g === 'Refresco' ? 'El refresco del menú.' : ''})));
+      filas.forEach(f => {
+        const n = el('textarea', {rows:'2', 'aria-label':'Plato'}); n.value = f.plato; n.addEventListener('input', () => { f.plato = n.value; });
+        const p = el('input', {type:'text', inputmode:'decimal', 'aria-label':'Precio', placeholder:'S/', value:f.precio}); p.addEventListener('input', () => { f.precio = p.value.replace(',', '.'); });
+        caja.appendChild(el('div', {class:'fila-ed' + (conPrecio ? '' : ' sinp')}, n, conPrecio ? p : null,
+          el('button', {type:'button', class:'x', 'aria-label':'Quitar ' + f.plato, onclick:() => { ed.filas.splice(ed.filas.indexOf(f), 1); pintar(); }}, '×')));
+      });
+      const botones = el('div', {class:'dos'}, el('button', {type:'button', class:'btn claro', onclick:() => { ed.filas.push({seccion:g, plato:'', precio:'', foto:''}); pintar(); }}, '+ Agregar'));
+      if(g === 'Menú' && filas.length) botones.appendChild(el('button', {type:'button', class:'btn claro', onclick:() => { ed.filas = ed.filas.filter(f => !/^(menu|entrada)/.test(norm(f.seccion))); pintar(); }}, 'Hoy no hay menú'));
+      caja.appendChild(botones);
+      out.push(caja);
+    });
+    const guardar = async () => {
+      if(ed.guardando) return; ed.guardando = true; ed.msg = 'Guardando…'; pintar();
+      const filas = ed.filas.filter(f => f.plato.trim()).map(f => ({seccion:f.seccion, plato:f.plato.trim(), precio:f.precio === '' ? '' : num(f.precio), foto:f.foto || ''}));
+      try{ const r = await llamar({accion:'guardar', clave:ed.clave, filas});
+        if(r.ok){ ed.msg = 'Guardado. Los clientes ya ven la carta nueva.'; FILAS = filas.map(f => Object.assign({}, f, {precio:String(f.precio)})); C = armarCarta(CFG, FILAS); ed.filas = null; }
+        else ed.msg = r.error === 'clave' ? 'La clave cambió. Vuelve a entrar.' : 'No se pudo guardar. Prueba otra vez.'; }
+      catch(e){ ed.msg = 'No hay conexión. Revisa el internet y vuelve a tocar Guardar.'; }
+      ed.guardando = false; pintar(); };
+    out.push(ed.msg ? el('p', {class:'aviso', text:ed.msg}) : null,
+      el('div', {class:'guardar'}, el('button', {type:'button', class:'btn verde', onclick:guardar}, ed.guardando ? 'Guardando…' : 'Guardar cambios')),
+      el('a', {href:base(), class:'btn claro ancho'}, 'Ver cómo la ven los clientes'));
+    return out;
   }
 
   /* ---------- fotos ---------- */
@@ -409,7 +471,7 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
   /* ---------- pintar ---------- */
   function pintar(){
     const y = window.scrollY; app.innerHTML = '';
-    (location.hash === '#carteles' ? vistaCarteles() : vistaCliente()).filter(Boolean).forEach(p => app.appendChild(p));
+    (location.hash === '#carteles' ? vistaCarteles() : location.hash === '#editar' ? vistaEditar() : vistaCliente()).filter(Boolean).forEach(p => app.appendChild(p));
     window.scrollTo(0, y);
   }
   cargar().catch(() => { toast('No se pudo cargar la carta. Revisa el internet.'); }).then(pintar);
