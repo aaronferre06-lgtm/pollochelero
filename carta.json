@@ -1,6 +1,24 @@
 {
   "wa": "51939738128",
   "mesas": 6,
+  "pago": {
+    "yape": "948739725",
+    "nombre": "Eugenio Celso Ferre Aguilar",
+    "qr": "yape-qr.svg",
+    "tarjeta": 5
+  },
+  "horario": {
+    "menu": [
+      "12:00",
+      "15:00"
+    ],
+    "polleria": [
+      "19:00",
+      "23:30"
+    ]
+  },
+  "demora": 20,
+  "delivery": true,
   "hoja": "https://docs.google.com/spreadsheets/d/1fdO0il1W53NYGLI8bZziNXrOuaDbWUEccK8KaFKi9KI/edit",
   "editar": "https://script.google.com/macros/s/AKfycbzERqff3jPjoMcgYJX3gizaG5b1NrkJ9aNh_Fs_Ld1QTTJS0V_Wmg9FR4USUmRq7wnU/exec",
   "filas": [

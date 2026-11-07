@@ -132,6 +132,40 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
 .fila-ed input,.fila-ed textarea{background:var(--paper);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:12px;font-size:19px;width:100%;min-width:0}
 .fila-ed .x{height:52px;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--muted);font-size:26px}
 .guardar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);z-index:4}
+.tres{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tres .opc{padding:12px 4px;font-size:18px}
+.mini-pago{margin:0;font-size:16px;color:var(--muted);font-weight:600}
+.pago{width:100%;text-align:left;background:var(--paper);border:3px solid var(--ok);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.pago-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.pago-cab b{font-size:21px}
+.pago .monto{font-family:var(--display);font-size:34px;color:var(--ok)}
+.pago-num{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--bg);border-radius:12px;padding:10px 12px}
+.pago-num small{display:block;color:var(--muted);font-size:15px;font-weight:700}
+.pago-num .cel{font-size:30px}
+.pago-num .btn{min-height:46px;padding:8px 12px;font-size:17px}
+.pago-nom,.pago-nota{margin:0;font-size:17px}
+.pago-nota{color:var(--muted)}
+.pago-qr{display:flex;align-items:center;gap:12px}
+.pago-qr img{width:120px;height:120px;flex:none;border-radius:8px;border:1px solid var(--line);background:#fff}
+.pago-qr span{font-size:16px;color:var(--muted);font-weight:600}
+.ayuda-btn{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:6;display:flex;align-items:center;gap:8px;border:0;border-radius:30px;padding:12px 18px;background:var(--ink);color:var(--bg);font-weight:700;font-size:18px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.ayuda-btn.alto{bottom:calc(env(safe-area-inset-bottom,0px) + 100px)}
+.ayuda-btn svg{width:22px;height:22px;display:block}
+.chat{display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;gap:8px;font-size:18px;line-height:1.3}
+.msg p{margin:0}
+.msg.bot{align-self:flex-start;background:var(--paper);border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.yo{align-self:flex-end;background:var(--ok);color:var(--ok-ink);border-bottom-right-radius:4px;font-weight:600}
+.msg .pago{border-width:2px}
+.msg .btn{min-height:46px;padding:8px 14px;font-size:17px}
+.chat-plato{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px dashed var(--line);padding-top:8px}
+.chat-plato span{min-width:0}
+.chat-plato b{color:var(--brasa);white-space:nowrap}
+.chat-plato .btn{flex:none}
+.chips-chat{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--brasa);background:transparent;color:var(--brasa);border-radius:20px;padding:8px 12px;font-weight:700;font-size:16px}
+.chat-in{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom,0px));background:var(--bg);padding-block:8px}
+.chat-in input{background:var(--paper);color:var(--ink);border:2px solid var(--line);border-radius:14px;padding:12px;font-size:18px;min-width:0}
 .pie{color:var(--muted);font-size:15px;text-align:center;margin:8px 0 0}
 .pie a{color:inherit}
 .cargando .foto{animation:lat 1.2s ease-in-out infinite alternate}
@@ -294,7 +328,7 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
   }
 
   /* ---------- dónde está el cliente ---------- */
-  const st = { turno:'', donde:'', mesa:0, nombre:'', nota:'', carrito:new Map(), enviado:null, numero:'' };
+  const st = { turno:'', donde:'', mesa:0, nombre:'', nota:'', dir:'', chat:[], carrito:new Map(), enviado:null, numero:'' };
   function leerHash(){
     const h = (location.hash||'').slice(1);
     const m = h.match(/^mesa-(\d{1,2})$/);
@@ -318,15 +352,42 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
   function quitarUno(id){ const ks = [...st.carrito.keys()].filter(k => k.startsWith(id + '|')); if(ks.length){ const l = st.carrito.get(ks[ks.length-1]); sumar(id, l.entrada, -1); } }
   function totales(){ let q = 0, t = 0; st.carrito.forEach(l => { const it = buscar(l.id); if(!it) return; q += l.q; t += l.q * it.p; }); return {q, t}; }
   function textoPedido(n){
-    const out = ['PEDIDO ' + n + ' - ' + (st.donde === 'mesa' ? 'MESA ' + st.mesa : 'PARA LLEVAR'), ''];
+    const out = ['PEDIDO ' + n + ' - ' + (st.donde === 'mesa' ? 'MESA ' + st.mesa : st.donde === 'delivery' ? 'DELIVERY' : 'PARA LLEVAR'), ''];
     st.carrito.forEach(l => { const it = buscar(l.id); if(!it) return;
       const nom = it.menu ? 'Menú: ' + it.n + (C.entradas.length ? (l.entrada ? ', entrada ' + l.entrada : ', sin entrada') : '') : it.n;
       out.push(l.q + ' x ' + nom + '  (' + sol(l.q * it.p) + ')'); });
     out.push('');
     if(st.nota.trim()) out.push('Nota: ' + st.nota.trim());
-    out.push('TOTAL: ' + sol(totales().t));
+    out.push('TOTAL: ' + sol(totales().t) + (st.donde === 'delivery' ? ' + delivery (por confirmar)' : ''));
     if(st.nombre.trim()) out.push('Nombre: ' + st.nombre.trim());
+    if(st.donde === 'delivery' && st.dir.trim()) out.push('Dirección: ' + st.dir.trim());
     return out.join('\n');
+  }
+
+  /* ---------- pago, horario y demora ---------- */
+  const PAGO = () => Object.assign({yape:'', nombre:'', qr:'', tarjeta:0}, CFG.pago || {});
+  const celBonito = n => String(n||'').replace(/\D/g,'').replace(/^51(?=\d{9}$)/, '').replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
+  const aMin = h => { const m = String(h||'').match(/(\d{1,2}):(\d{2})/); return m ? +m[1]*60 + +m[2] : null; };
+  function horaBonita(h){ const t = aMin(h); if(t == null) return ''; let H = Math.floor(t/60), M = t % 60; const suf = H === 12 && M === 0 ? ' m.' : (H < 12 ? ' a. m.' : ' p. m.'); H = H % 12 || 12; return H + (M ? ':' + String(M).padStart(2,'0') : '') + suf; }
+  function rango(k){ const r = (CFG.horario || {})[k]; return r ? horaBonita(r[0]) + ' a ' + horaBonita(r[1]) : ''; }
+  function abiertoAhora(){ const d = new Date(), t = d.getHours()*60 + d.getMinutes(), h = CFG.horario || {};
+    for(const k of ['menu','polleria']){ const r = h[k]; if(r && t >= aMin(r[0]) && t < aMin(r[1])) return k; } return ''; }
+  function copiar(texto, boton, listoTxt){
+    const ok = () => { boton.textContent = listoTxt || 'Copiado'; };
+    const mal = () => { toast('Mantén apretado el número para copiarlo.'); };
+    try{ navigator.clipboard.writeText(texto).then(ok, mal); }catch(e){ mal(); }
+  }
+  function cajaPago(total){
+    const P = PAGO(); if(!P.yape) return null;
+    const conTarjeta = total && P.tarjeta ? total * (1 + P.tarjeta/100) : 0;
+    return el('div', {class:'pago'},
+      el('div', {class:'pago-cab'}, el('b', {text:'Paga con Yape o Plin'}), total ? el('span', {class:'monto', text:sol(total) + (st.donde === 'delivery' ? ' + delivery' : '')}) : null),
+      el('div', {class:'pago-num'}, el('div', {}, el('small', {text:'Al número'}), el('span', {class:'cel', text:celBonito(P.yape)})),
+        el('button', {type:'button', class:'btn claro', onclick:ev => copiar(String(P.yape).replace(/\D/g,''), ev.currentTarget, 'Número copiado')}, 'Copiar número')),
+      P.nombre ? el('p', {class:'pago-nom'}, 'Te sale a nombre de ', el('b', {text:P.nombre})) : null,
+      P.qr ? el('div', {class:'pago-qr'}, el('img', {src:P.qr, alt:'QR de Yape de El Pollo Chelero'}), el('span', {text:'¿Pagas desde otro celular? Escanea este QR con Yape.'})) : null,
+      P.tarjeta ? el('p', {class:'pago-nota', text:'Con tarjeta se cobra ' + P.tarjeta + ' % más' + (conTarjeta ? ': ' + sol(conTarjeta) + '.' : '.')}) : null,
+      el('p', {class:'pago-nota', text:st.donde === 'mesa' ? 'Puedes pagar ahora o al terminar de comer.' : 'Después de pagar, manda la captura por el mismo WhatsApp.'}));
   }
 
   /* ---------- pantalla del cliente ---------- */
@@ -392,6 +453,8 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     if(q > 0) out.push(el('div', {class:'barra'}, el('div', {class:'in'},
       el('div', {class:'res'}, el('b', {text:sol(t)}), el('span', {text:q + (q === 1 ? ' cosa en tu pedido' : ' cosas en tu pedido')})),
       el('button', {type:'button', class:'btn verde', style:'width:auto;font-size:20px', onclick:abrirPedido}, 'Ver y enviar'))));
+    out.push(el('button', {type:'button', class:'ayuda-btn' + (q > 0 ? ' alto' : ''), 'aria-label':'Abrir el asistente de dudas', onclick:abrirAsistente},
+      el('span', {html:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="currentColor"/></svg>'}), '¿Dudas?'));
     return out;
   }
 
@@ -411,29 +474,39 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
               el('output', {}, String(l.q)),
               el('button', {type:'button', class:'mas', 'aria-label':'Uno más', onclick:() => { sumar(l.id, l.entrada, 1); armar(); }}, '+')))); });
         hoja.append(ul, el('div', {class:'total'}, el('span', {text:'Total'}), el('span', {text:sol(totales().t)})));
-        const preg = el('div', {class:'preg'}, el('b', {text:'¿Comes aquí o es para llevar?'}),
-          el('div', {class:'dos'},
+        const conDelivery = CFG.delivery !== false;
+        const preg = el('div', {class:'preg'}, el('b', {text:conDelivery ? '¿Comes aquí, para llevar o delivery?' : '¿Comes aquí o es para llevar?'}),
+          el('div', {class:conDelivery ? 'tres' : 'dos'},
             el('button', {type:'button', class:'opc', 'aria-pressed':String(st.donde === 'mesa'), onclick:() => { st.donde = 'mesa'; armar(); }}, 'Como aquí'),
-            el('button', {type:'button', class:'opc', 'aria-pressed':String(st.donde === 'llevar'), onclick:() => { st.donde = 'llevar'; st.mesa = 0; armar(); }}, 'Para llevar')));
+            el('button', {type:'button', class:'opc', 'aria-pressed':String(st.donde === 'llevar'), onclick:() => { st.donde = 'llevar'; st.mesa = 0; armar(); }}, 'Para llevar'),
+            conDelivery ? el('button', {type:'button', class:'opc', 'aria-pressed':String(st.donde === 'delivery'), onclick:() => { st.donde = 'delivery'; st.mesa = 0; armar(); }}, 'Delivery') : null));
+        if(st.donde === 'delivery'){
+          const dir = el('textarea', {id:'f-dir', rows:'2', autocomplete:'street-address', placeholder:'Ej.: Jr. Los Pinos 123, frente al parque'}); dir.value = st.dir;
+          dir.addEventListener('input', () => { st.dir = dir.value; if(enlace) enlace(); });
+          preg.append(el('label', {class:'campo', for:'f-dir'}, 'Dirección de entrega', el('small', {text:'El delivery se cobra aparte según la zona. Te confirmamos el costo por WhatsApp.'}), dir));
+        }
         if(st.donde === 'mesa'){
           const ms = el('div', {class:'mesas'});
           for(let i = 1; i <= C.mesas; i++) ms.appendChild(el('button', {type:'button', class:'opc', 'aria-pressed':String(st.mesa === i), 'aria-label':'Mesa ' + i, onclick:() => { st.mesa = i; armar(); }}, String(i)));
           preg.append(el('b', {text:'¿En qué mesa estás?'}), ms);
         }
         hoja.appendChild(preg);
+        if(PAGO().yape) hoja.appendChild(el('p', {class:'mini-pago', text:'Pagas con Yape, Plin' + (PAGO().tarjeta ? ' o tarjeta (+' + PAGO().tarjeta + ' %)' : '') + '. Al enviar te mostramos el número y el monto.'}));
+        let enlace = null;
         const nom = el('input', {type:'text', id:'f-nombre', autocomplete:'given-name', placeholder:'Ej.: Rosa'}); nom.value = st.nombre;
         nom.addEventListener('input', () => { st.nombre = nom.value; });
         const nota = el('textarea', {id:'f-nota', placeholder:'Ej.: sin ensalada, papas bien doradas'}); nota.value = st.nota;
         nota.addEventListener('input', () => { st.nota = nota.value; });
-        hoja.append(el('label', {class:'campo', for:'f-nombre'}, 'Tu nombre', el('small', {text:st.donde === 'llevar' ? 'Para llamarte cuando esté listo.' : 'Opcional.'}), nom),
+        hoja.append(el('label', {class:'campo', for:'f-nombre'}, 'Tu nombre', el('small', {text:st.donde === 'llevar' ? 'Para llamarte cuando esté listo.' : st.donde === 'delivery' ? 'Para saber a quién entregar.' : 'Opcional.'}), nom),
           el('label', {class:'campo', for:'f-nota'}, '¿Algo que debamos saber?', el('small', {text:'Opcional.'}), nota));
-        const falta = !st.donde ? 'Elige si comes aquí o es para llevar.' : (st.donde === 'mesa' && !st.mesa ? 'Elige el número de tu mesa.' : '');
+        const falta = !st.donde ? 'Elige cómo quieres tu pedido.' : (st.donde === 'mesa' && !st.mesa ? 'Elige el número de tu mesa.' : '');
         if(falta) hoja.appendChild(el('p', {class:'aviso', text:falta}));
         const n = st.numero || (st.numero = String(100 + Math.floor(Math.random()*900)));
         const env = el('a', {class:'btn verde', href:'#', target:'_blank', rel:'noopener', 'aria-disabled':falta ? 'true' : null}, 'Enviar pedido por WhatsApp');
-        const enlace = () => { env.href = 'https://wa.me/' + C.wa + '?text=' + encodeURIComponent(textoPedido(n)); };
+        enlace = () => { env.href = 'https://wa.me/' + C.wa + '?text=' + encodeURIComponent(textoPedido(n)); };
         enlace(); nom.addEventListener('input', enlace); nota.addEventListener('input', enlace);
-        env.addEventListener('click', ev => { if(falta){ ev.preventDefault(); return; } enlace(); st.enviado = {n, txt:textoPedido(n)}; setTimeout(armar, 400); });
+        env.addEventListener('click', ev => { if(falta){ ev.preventDefault(); return; }
+          if(st.donde === 'delivery' && !st.dir.trim()){ ev.preventDefault(); toast('Escribe tu dirección para el delivery.'); const d = document.getElementById('f-dir'); if(d) d.focus(); return; } enlace(); st.enviado = {n, txt:textoPedido(n)}; setTimeout(armar, 400); });
         hoja.append(env, el('p', {style:'margin:0;color:var(--muted);font-size:16px;text-align:center', text:'Se abre WhatsApp con tu pedido ya escrito. Solo aprietas enviar.'}));
       }
       function listo(){
@@ -441,14 +514,113 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
         hoja.appendChild(el('div', {class:'listo'},
           el('p', {text:'Tu número de pedido'}), el('div', {class:'num', text:e.n}),
           el('p', {class:'aviso', text:'En WhatsApp aprieta la flechita verde para mandarlo. Si no lo mandas, no nos llega.'}),
+          cajaPago(totales().t),
           el('p', {text:'¿No se abrió WhatsApp? Escríbenos al'}), el('span', {class:'cel', text:cel}),
           el('p', {text:'y pega este pedido:'}), el('pre', {class:'copiar', id:'txt-pedido', text:e.txt}),
           el('button', {type:'button', class:'btn claro ancho', onclick:ev => { const b = ev.currentTarget;
             const sel = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('txt-pedido')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Texto marcado, ahora cópialo'; };
             try{ navigator.clipboard.writeText(e.txt).then(() => { b.textContent = 'Copiado'; }, sel); }catch(x){ sel(); } }}, 'Copiar el pedido'),
-          el('button', {type:'button', class:'btn rojo ancho', onclick:() => { st.carrito.clear(); st.enviado = null; st.nota = ''; st.numero = ''; cerrar(); window.scrollTo(0,0); }}, 'Listo, hacer otro pedido')));
+          el('button', {type:'button', class:'btn rojo ancho', onclick:() => { st.carrito.clear(); st.enviado = null; st.nota = ''; st.numero = ''; st.dir = ''; cerrar(); window.scrollTo(0,0); }}, 'Listo, hacer otro pedido')));
       }
       armar();
+    });
+  }
+
+  /* ---------- asistente de dudas ---------- */
+  const STOP = new Set('el la los las de del un una unos unas cuanto cuanta cuesta cuestan precio precios vale valen sale salen es son esta estan hay tienen tiene que con y a me mi quiero por favor cual cuales en lo al para se su sus o porfa porfavor hola buenas tardes noches dias como dame deme quisiera'.split(' '));
+  const SINON = {cuarto:'1/4', medio:'1/2', octavo:'1/8', coca:'gaseosa', inca:'gaseosa', cola:'gaseosa', chela:'cerveza', chelas:'cerveza', papitas:'papas', mostro:'mostrito'};
+  const tokens = t => norm(t).split(/[^a-z0-9\/ñ]+/).filter(Boolean);
+  function platos(){ const a = C.menu.slice(); C.secs.forEach(g => a.push(...g.items)); return a; }
+  function buscarPlatos(q){
+    const qs = tokens(q).map(w => SINON[w] || w).filter(w => !STOP.has(w) && (w.length >= 3 || w.includes('/')));
+    if(!qs.length) return [];
+    const res = platos().map(it => { const nt = tokens(it.n); return {it, s:qs.filter(w => nt.some(x => x === w || (w.length >= 4 && x.startsWith(w)))).length}; }).filter(r => r.s > 0);
+    const max = Math.max(0, ...res.map(r => r.s));
+    return res.filter(r => r.s === max).map(r => r.it).slice(0, 6);
+  }
+  function lineaPlato(it){
+    return el('div', {class:'chat-plato'}, el('span', {}, (it.menu ? 'Menú: ' : '') + it.n, el('b', {text:' ' + sol(it.p)})),
+      el('button', {type:'button', class:'btn rojo', onclick:() => { agregar(it); toast('Agregado: ' + it.n); }}, 'Agregar'));
+  }
+  function waDuda(q){ return el('a', {class:'btn verde', href:'https://wa.me/' + C.wa + '?text=' + encodeURIComponent('Hola, tengo una duda' + (q ? ': ' + q : '')), target:'_blank', rel:'noopener'}, 'Escribir por WhatsApp'); }
+  function responder(q){
+    const n = norm(q), P = PAGO(), {q:cant, t} = totales(), R = [];
+    const has = re => re.test(n);
+    if(has(/gracias|grax|thank/)) return ['¡De nada! Buen provecho.'];
+    if(has(/tarjeta|visa|master|credito|debito|\bpos\b/)) {
+      R.push(P.tarjeta ? 'Sí, aceptamos tarjeta con ' + P.tarjeta + ' % más de comisión.' : 'Pregúntanos por WhatsApp si hoy aceptamos tarjeta.');
+      if(cant && P.tarjeta) R.push('Tu pedido con tarjeta sería ' + sol(t * (1 + P.tarjeta/100)) + '.');
+      R.push('Con Yape o Plin no pagas comisión.'); return R; }
+    if(has(/yape|yapeo|yapear|plin|pag[oa]|pagar|transfer|deposit|cuenta|numero/)) {
+      R.push(cant ? 'Tu pedido suma ' + sol(t) + '. Puedes pagar así:' : 'Aceptamos Yape y Plin' + (P.tarjeta ? ', y tarjeta con ' + P.tarjeta + ' % más' : '') + '. Arma tu pedido y aquí te sale el monto.');
+      R.push(cajaPago(cant ? t : 0)); return R; }
+    if(has(/delivery|domicilio|envi[ao]n|llevan a|reparto|motorizado/)) {
+      return [CFG.delivery !== false ? 'Sí, hacemos delivery. El costo depende de tu zona: cuando envíes tu pedido elige "Delivery", escribe tu dirección y te confirmamos el costo por WhatsApp.' : 'Por ahora no hacemos delivery. Puedes pedir para llevar.']; }
+    if(has(/demora|tarda|tiempo|minuto|rapido|cuando (esta|estara|sale)/)) {
+      return ['Tu pedido demora más o menos ' + (CFG.demora || 20) + ' minutos' + (st.donde === 'delivery' ? ', más lo que tarde en llegar a tu casa.' : '.')]; }
+    if(has(/horario|hora|abren|abierto|cierran|atienden|hasta que/)) {
+      const a = abiertoAhora();
+      R.push('Menú del día: ' + (rango('menu') || 'consúltanos'));
+      R.push('Pollería: ' + (rango('polleria') || 'consúltanos'));
+      R.push(a === 'menu' ? 'Ahora estamos atendiendo el menú.' : a === 'polleria' ? 'Ahora estamos atendiendo la pollería.' : 'En este momento estamos fuera de horario.');
+      return R; }
+    const encontrados = buscarPlatos(q);
+    if(!encontrados.length && cant && has(/total|monto|cuanto (es|seria|va|debo|pago|sale)|mi pedido|cuanto le debo/)) {
+      R.push('Tu pedido va así:');
+      st.carrito.forEach(l => { const it = buscar(l.id); if(it) R.push(l.q + ' x ' + it.n + ': ' + sol(l.q * it.p)); });
+      R.push('Total: ' + sol(t) + (st.donde === 'delivery' ? ' + delivery' : '') + '.');
+      R.push(el('button', {type:'button', class:'btn verde', onclick:() => { cerrarChat && cerrarChat(); abrirPedido(); }}, 'Ver y enviar mi pedido')); return R; }
+    if(encontrados.length) { R.push(encontrados.length === 1 ? 'Esto es lo que tenemos:' : 'Encontré esto:'); encontrados.forEach(it => R.push(lineaPlato(it))); return R; }
+    if(has(/menu|almuerzo|entrada|segundo|hoy/)) {
+      if(!C.menu.length) return ['Hoy no hay menú del día. La pollería atiende ' + (rango('polleria') || 'de noche') + '.'];
+      R.push('El menú de hoy' + (rango('menu') ? ' (' + rango('menu') + ')' : '') + ':');
+      if(C.entradas.length) R.push('Entradas: ' + C.entradas.join(', ') + '.');
+      C.menu.forEach(it => R.push(lineaPlato(it)));
+      if(C.refresco) R.push('Viene con ' + C.refresco.toLowerCase() + '.');
+      return R; }
+    if(has(/polleria|pollo|combo|noche|cena/)) {
+      R.push('En la pollería tenemos' + (rango('polleria') ? ' (' + rango('polleria') + ')' : '') + ':');
+      C.secs.filter(g => !/bebida/.test(norm(g.t))).forEach(g => g.items.slice(0, 6).forEach(it => R.push(lineaPlato(it))));
+      return R; }
+    if(has(/bebida|gaseosa|tomar|refresco|cerveza|chicha|agua/)) {
+      const b = C.secs.filter(g => /bebida/.test(norm(g.t))); if(b.length){ R.push('Para tomar tenemos:'); b.forEach(g => g.items.forEach(it => R.push(lineaPlato(it)))); return R; } }
+    if(has(/pido|pedir|pedido|ordenar|mando|mandar|enviar|whatsapp|funciona|como (es|se)/)) {
+      return ['Es fácil:', '1. Toca "Agregar" en lo que quieras.', '2. Abajo toca "Ver y enviar".', '3. Elige si comes aquí, para llevar o delivery.', '4. Se abre WhatsApp con tu pedido ya escrito: solo aprieta enviar.',
+        st.donde === 'mesa' ? 'Tu pedido llega a la cocina con el número de tu mesa (Mesa ' + st.mesa + ').' : 'Tu pedido llega a nuestro WhatsApp: ' + celBonito(C.wa) + '.']; }
+    if(has(/mesa|qr|codigo|escane/)) return ['El QR de tu mesa ya sabe en qué mesa estás, así que tu pedido llega con ese número. Solo elige y envía.'];
+    if(has(/^(hola|buenas|buenos|ola|hey)/)) return ['¡Hola! Pregúntame lo que quieras o toca una opción de abajo.'];
+    return ['No tengo esa respuesta, pero te ayudamos por WhatsApp.', waDuda(q)];
+  }
+  const RAPIDAS = [['¿Cómo pido?','¿Cómo pido?'],['¿Dónde yapeo?','¿Dónde yapeo?'],['¿Cuánto es mi pedido?','¿Cuánto es mi pedido?'],['Menú de hoy','¿Qué hay de menú hoy?'],['Pollería','¿Qué hay en la pollería?'],['Horario','¿Cuál es el horario?'],['¿Hacen delivery?','¿Hacen delivery?'],['¿Cuánto demora?','¿Cuánto demora?'],['¿Aceptan tarjeta?','¿Aceptan tarjeta?'],['Hablar con alguien','__humano']];
+  let cerrarChat = null;
+  function abrirAsistente(){
+    if(!st.chat.length) st.chat.push({de:'bot', partes:['¡Hola! Soy el asistente de El Pollo Chelero. Escribe tu duda o toca una pregunta.']});
+    hojaModal('Asistente de dudas', (h, cerrar) => {
+      cerrarChat = () => { cerrarChat = null; cerrar(); };
+      const log = el('div', {class:'chat', 'aria-live':'polite'});
+      function burbuja(m){
+        const b = el('div', {class:'msg ' + (m.de === 'yo' ? 'yo' : 'bot')});
+        m.partes.forEach(p => { if(p == null) return; b.appendChild(typeof p === 'string' ? el('p', {text:p}) : p); });
+        return b;
+      }
+      function preguntar(texto, mostrar){
+        if(!texto.trim()) return;
+        st.chat.push({de:'yo', partes:[mostrar || texto]});
+        const partes = texto === '__humano' ? ['Claro, escríbenos y te respondemos al toque.', waDuda('')] : responder(texto);
+        st.chat.push({de:'bot', partes});
+        log.append(burbuja(st.chat[st.chat.length-2]), burbuja(st.chat[st.chat.length-1]));
+        setTimeout(() => { h.scrollTop = h.scrollHeight; }, 30);
+      }
+      st.chat.forEach(m => log.appendChild(burbuja(m)));
+      const inp = el('input', {type:'text', id:'f-duda', autocomplete:'off', placeholder:'Escribe tu duda aquí…', 'aria-label':'Escribe tu duda'});
+      const enviar = () => { const v = inp.value; inp.value = ''; preguntar(v); };
+      inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); enviar(); } });
+      h.append(
+        el('div', {class:'cab'}, el('h2', {text:'¿Tienes una duda?'}), el('button', {type:'button', class:'btn claro', onclick:() => cerrarChat()}, 'Cerrar')),
+        log,
+        el('div', {class:'chips-chat'}, RAPIDAS.map(([t, q]) => el('button', {type:'button', class:'chip', onclick:() => preguntar(q, t)}, t))),
+        el('div', {class:'chat-in'}, inp, el('button', {type:'button', class:'btn verde', style:'width:auto;min-height:54px', onclick:enviar}, 'Enviar')));
+      setTimeout(() => { h.scrollTop = h.scrollHeight; }, 30);
     });
   }
 
