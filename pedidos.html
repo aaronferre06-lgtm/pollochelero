@@ -55,19 +55,19 @@ button{cursor:pointer}
 .seccion > header{display:flex;flex-direction:column;gap:2px;border-bottom:3px solid var(--oro);padding-bottom:6px}
 .seccion h2{font-size:32px}
 .seccion header p{margin:0;color:var(--muted);font-weight:600;font-size:17px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-@media (min-width:620px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-.plato{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
-.plato.tiene{border:3px solid var(--ok)}
+.grid{display:flex;flex-direction:column;gap:10px}
+.plato{background:var(--paper);border:1px solid var(--line);border-radius:14px;display:flex;align-items:center;gap:12px;padding:12px;min-width:0}
+.mini-foto{width:72px;height:72px;flex:none;border-radius:10px;object-fit:cover;display:block}
+.plato.tiene{border:3px solid var(--ok);padding:10px}
 .foto{position:relative;aspect-ratio:4/3;width:100%;max-width:100%;background:var(--oro-soft);color:var(--brasa);display:grid;place-items:center;overflow:hidden}
 .foto img{width:100%;height:100%;object-fit:cover;display:block}
 .foto svg{width:46%;height:auto}
 .foto .ref{position:absolute;right:6px;bottom:6px;background:rgba(36,25,20,.72);color:#FFFDF8;font-size:12px;font-weight:600;padding:2px 7px;border-radius:6px}
 .fila .mini .lab{position:absolute;left:0;right:0;bottom:0;background:rgba(36,25,20,.7);color:#FFFDF8;font-size:11px;padding:1px 0}
-.plato .txt{padding:10px 12px 4px;display:flex;flex-direction:column;gap:2px;flex:1}
+.plato .txt{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
 .plato .nom{font-weight:700;font-size:19px;line-height:1.15}
 .plato .pre{font-family:var(--display);font-size:24px;color:var(--brasa)}
-.plato .acc{padding:8px 10px 10px}
+.plato .acc{flex:none;width:156px}
 .plato .acc .btn{width:100%;min-height:52px;padding:10px}
 .cant{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;align-items:center;gap:6px}
 .cant button{height:52px;border-radius:12px;border:0;font-size:30px;font-weight:700;line-height:1}
@@ -179,13 +179,11 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
 <body>
 <div id="app"><p>Cargando la carta…</p></div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="fotos.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (function(){
   'use strict';
   const app = document.getElementById('app');
-  const F = window.FotosPlatos;
 
   /* ---------- utilidades ---------- */
   const el = (tag, attrs, ...kids) => {
@@ -311,20 +309,12 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     return out;
   }
 
-  /* ---------- fotos ---------- */
-  function urlFoto(it){
-    if(it.f) return it.f;
-    const k = F.fija(it.n); if(k && F.FIJAS[k]) return F.FIJAS[k].u;
-    const g = F.guardada(it.n); if(g) return g.u;
-    return g === null ? '' : undefined;   // undefined = todavía buscando
-  }
-  function icono(it){ const s = norm(it.sec); return /bebida|gaseosa|refresco/.test(s) ? ICON.bebida : /pollo/.test(s) ? ICON.pollo : ICON.plato; }
+  /* ---------- fotos: solo las que ponga el local en la hoja ---------- */
   function fotoDe(it){
-    const u = urlFoto(it), box = el('div', {class:'foto'});
-    const poner = src => { box.innerHTML = ''; const im = el('img', {src, alt:'', loading:'lazy'}); im.onerror = () => { box.innerHTML = icono(it); }; box.appendChild(im); if(!it.f) box.appendChild(el('span', {class:'ref', text:'Foto referencial'})); };
-    if(u) poner(u);
-    else { box.innerHTML = icono(it); if(u === undefined){ F.buscar(it.n).then(r => { if(r) poner(r.u); }); } }
-    return box;
+    if(!it.f) return null;
+    const im = el('img', {class:'mini-foto', src:it.f, alt:'', loading:'lazy'});
+    im.onerror = () => im.remove();
+    return im;
   }
 
   /* ---------- dónde está el cliente ---------- */
@@ -461,7 +451,6 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     const carta = C.secs.map((g, i) => seccion('c' + i, g.t, [], g.items));
     if(st.turno === 'menu'){ if(menu) out.push(menu); out.push(...bebidas); } else out.push(...carta);
     if(!menu && !carta.length) out.push(el('p', {class:'aviso', text:'En este momento no estamos tomando pedidos por aquí. Acércate a caja.'}));
-    out.push(el('p', {class:'pie'}, 'Fotos referenciales de ', el('a', {href:'https://commons.wikimedia.org', target:'_blank', rel:'noopener'}, 'Wikimedia Commons'), ', con licencias libres.'));
     const {q, t} = totales();
     if(q > 0) out.push(el('div', {class:'barra'}, el('div', {class:'in'},
       el('div', {class:'res'}, el('b', {text:sol(t)}), el('span', {text:q + (q === 1 ? ' cosa en tu pedido' : ' cosas en tu pedido')})),
