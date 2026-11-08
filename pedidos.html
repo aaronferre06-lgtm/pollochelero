@@ -377,11 +377,24 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     const mal = () => { toast('Mantén apretado el número para copiarlo.'); };
     try{ navigator.clipboard.writeText(texto).then(ok, mal); }catch(e){ mal(); }
   }
+  const YAPE_APP = 'com.bcp.innovacxion.yapeapp';
+  function yapear(numero, total){
+    const android = /android/i.test(navigator.userAgent);
+    const abrir = () => {
+      if(android) location.href = 'intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=' + YAPE_APP +
+        ';S.browser_fallback_url=' + encodeURIComponent('https://play.google.com/store/apps/details?id=' + YAPE_APP) + ';end';
+      else toast('Número copiado. Abre tu Yape, toca Yapear y pega el número.');
+    };
+    try{ navigator.clipboard.writeText(numero).then(() => { if(android) toast('Número copiado. En Yape pégalo' + (total ? ' y pon ' + sol(total) : '') + '.'); abrir(); }, abrir); }
+    catch(e){ abrir(); }
+  }
   function cajaPago(total){
     const P = PAGO(); if(!P.yape) return null;
     const conTarjeta = total && P.tarjeta ? total * (1 + P.tarjeta/100) : 0;
     return el('div', {class:'pago'},
       el('div', {class:'pago-cab'}, el('b', {text:'Paga con Yape o Plin'}), total ? el('span', {class:'monto', text:sol(total) + (st.donde === 'delivery' ? ' + delivery' : '')}) : null),
+      el('button', {type:'button', class:'btn verde ancho', onclick:() => yapear(String(P.yape).replace(/\D/g,''), total)}, 'Abrir Yape y pagar'),
+      el('p', {class:'pago-nota', text:'Se copia el número y se abre tu Yape. Ahí toca "Yapear", pega el número' + (total ? ' y escribe ' + sol(total) : '') + '.'}),
       el('div', {class:'pago-num'}, el('div', {}, el('small', {text:'Al número'}), el('span', {class:'cel', text:celBonito(P.yape)})),
         el('button', {type:'button', class:'btn claro', onclick:ev => copiar(String(P.yape).replace(/\D/g,''), ev.currentTarget, 'Número copiado')}, 'Copiar número')),
       P.nombre ? el('p', {class:'pago-nom'}, 'Te sale a nombre de ', el('b', {text:P.nombre})) : null,
