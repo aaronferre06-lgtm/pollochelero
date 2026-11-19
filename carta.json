@@ -2,6 +2,7 @@
   "wa": "51939738128",
   "mesas": 6,
   "pago": {
+    "izipay": true,
     "yape": "948739725",
     "nombre": "Eugenio Celso Ferre Aguilar",
     "qr": "yape-qr.svg",

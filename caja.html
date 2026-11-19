@@ -78,6 +78,10 @@ details.agregar[open] summary::after{content:"–"}
 .op[aria-pressed="true"]{background:var(--brasa);border-color:var(--brasa);color:var(--brasa-ink)}
 .medios{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .medios .op{padding:10px 4px}
+.izi{background:var(--oro-soft);border:2px solid var(--oro);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:4px;text-align:center}
+.izi span{font-weight:700;font-size:20px}
+.izi b{font-family:var(--display);font-size:44px;font-weight:400;line-height:1}
+.izi small{font-size:16px;color:var(--muted)}
 .pagocon{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .pagocon .op{white-space:nowrap;padding-inline:4px}
 .campo{display:flex;flex-direction:column;gap:6px;font-weight:700}
@@ -413,7 +417,12 @@ details.agregar[open] summary::after{content:"–"}
         el('div', {class:'pagocon'}, [['Exacto', total], ['S/ 20', 20], ['S/ 50', 50], ['S/ 100', 100]].map(([t, v]) => el('button', {type:'button', class:'op', onclick:() => { st.pagaCon = String(v); inp.value = st.pagaCon; calc(); }}, t))), vu);
       calc();
     }
-    if((st.medio === 'Yape' || st.medio === 'Plin') && P.yape){
+    if((st.medio === 'Yape' || st.medio === 'Plin') && P.izipay){
+      pago.appendChild(el('div', {class:'izi'}, el('span', {text:'Cóbralo en el Izipay'}), el('b', {text:sol(total)}),
+        el('small', {text:'Cobrar con QR → pon el monto → que el cliente escanee con Yape o Plin.'})));
+      pago.appendChild(el('p', {class:'vacio', text:'Guarda la venta cuando el Izipay diga que el pago salió bien.'}));
+    }
+    if((st.medio === 'Yape' || st.medio === 'Plin') && P.yape && !P.izipay){
       pago.appendChild(el('div', {class:'qr'}, P.qr ? el('img', {src:P.qr, alt:'QR de Yape'}) : null,
         el('div', {class:'t'}, el('span', {text:'Que el cliente escanee o yapee al'}), el('span', {class:'num', text:String(P.yape).replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')}),
           P.nombre ? el('span', {style:'color:var(--muted);font-size:16px', text:P.nombre}) : null, el('b', {text:'Monto: ' + sol(total)}))));
