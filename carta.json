@@ -24,8 +24,8 @@
   },
   "demora": 20,
   "delivery": true,
-  "hoja": "https://docs.google.com/spreadsheets/d/1fdO0il1W53NYGLI8bZziNXrOuaDbWUEccK8KaFKi9KI/edit",
-  "editar": "https://script.google.com/macros/s/AKfycbzERqff3jPjoMcgYJX3gizaG5b1NrkJ9aNh_Fs_Ld1QTTJS0V_Wmg9FR4USUmRq7wnU/exec",
+  "hoja": "https://docs.google.com/spreadsheets/d/1IID42fDW7kmc7swe7x9Pb_l8f1FO7bbKN5zphXMQ9GU/edit",
+  "editar": "https://script.google.com/macros/s/AKfycbwzBJSkrcfTfBhBFApNHT-xbn368MEt1ec6_sBJLojJh__J8dpRVsmP1rjtTtEdrOqq/exec",
   "filas": [
     {
       "seccion": "Entrada",
