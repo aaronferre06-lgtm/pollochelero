@@ -544,7 +544,7 @@ details.agregar[open] summary::after{content:"–"}
         const cambio = lista.map(p => p.id).join() !== st.pedidos.map(p => p.id).join();
         st.pedidos = lista;
         if(nuevos.length){ nuevos.forEach(p => OIDOS.add(p.id)); guardarLS('caja-oidos', [...OIDOS].slice(-300)); campana(); nuevos.forEach(anunciar); ultimoRecordatorio = Date.now(); }
-        else if(lista.length && Date.now() - ultimoRecordatorio > 120000){ ultimoRecordatorio = Date.now(); campana(); hablar(lista.length === 1 ? 'Hay un pedido sin atender. ' + lista[0].lugar + '.' : 'Hay ' + lista.length + ' pedidos sin atender.'); }
+        else if(lista.length && Date.now() - ultimoRecordatorio > 15 * 60 * 1000){ ultimoRecordatorio = Date.now(); campana(); hablar(lista.length === 1 ? 'Hay un pedido sin atender. ' + lista[0].lugar + '.' : 'Hay ' + lista.length + ' pedidos sin atender.'); }
         if(cambio) pintarPedidos();
       }
     }catch(e){ if(st.estadoPedidos !== 'sin-red'){ st.estadoPedidos = 'sin-red'; pintarPedidos(); } }
