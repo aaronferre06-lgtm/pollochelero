@@ -361,6 +361,18 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     return out.join('\n');
   }
 
+  // Además de WhatsApp, el pedido cae en la caja, que lo lee en voz alta.
+  function avisarCaja(n){
+    if(!CFG.editar) return;
+    const items = []; st.carrito.forEach(l => { const it = buscar(l.id); if(it) items.push({n:it.n, q:l.q, p:it.p, e:l.entrada || ''}); });
+    const lugar = st.donde === 'mesa' ? 'Mesa ' + st.mesa : st.donde === 'delivery' ? 'Delivery' : 'Para llevar';
+    const datos = JSON.stringify({accion:'pedido', pedido:{id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), num:n, lugar, texto:textoPedido(n), total:totales().t, nota:st.nota.trim(), dir:st.donde === 'delivery' ? st.dir.trim() : '', items}});
+    try{
+      if(navigator.sendBeacon && navigator.sendBeacon(CFG.editar, new Blob([datos], {type:'text/plain;charset=utf-8'}))) return;
+    }catch(e){}
+    try{ fetch(CFG.editar, {method:'POST', mode:'no-cors', keepalive:true, headers:{'Content-Type':'text/plain;charset=utf-8'}, body:datos}); }catch(e){}
+  }
+
   /* ---------- pago, horario y demora ---------- */
   const PAGO = () => Object.assign({yape:'', nombre:'', qr:'', tarjeta:0}, CFG.pago || {});
   const celBonito = n => String(n||'').replace(/\D/g,'').replace(/^51(?=\d{9}$)/, '').replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3');
@@ -546,7 +558,7 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
         enlace = () => { env.href = 'https://wa.me/' + C.wa + '?text=' + encodeURIComponent(textoPedido(n)); };
         enlace(); nom.addEventListener('input', enlace); nota.addEventListener('input', enlace);
         env.addEventListener('click', ev => { if(falta){ ev.preventDefault(); return; }
-          if(st.donde === 'delivery' && !st.dir.trim()){ ev.preventDefault(); toast('Escribe tu dirección para el delivery.'); const d = document.getElementById('f-dir'); if(d) d.focus(); return; } enlace(); st.enviado = {n, txt:textoPedido(n)}; setTimeout(armar, 400); });
+          if(st.donde === 'delivery' && !st.dir.trim()){ ev.preventDefault(); toast('Escribe tu dirección para el delivery.'); const d = document.getElementById('f-dir'); if(d) d.focus(); return; } enlace(); if(!st.avisado || st.avisado !== textoPedido(n)){ st.avisado = textoPedido(n); avisarCaja(n); } st.enviado = {n, txt:textoPedido(n)}; setTimeout(armar, 400); });
         hoja.append(env, el('p', {style:'margin:0;color:var(--muted);font-size:16px;text-align:center', text:'Se abre WhatsApp con tu pedido ya escrito. Solo aprietas enviar.'}));
       }
       function listo(){

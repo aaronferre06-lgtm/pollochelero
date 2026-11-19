@@ -1,20 +1,26 @@
 // Programa para la hoja de Google de El Pollo Chelero.
 // - Guarda la carta que se edita en pedidos.html#editar (primera pestaña).
 // - Guarda y lee las ventas de la caja (caja.html) en la pestaña "Ventas".
+// - Recibe los pedidos de las mesas (pestaña "Pedidos") para que la caja los lea en voz alta.
 // Pon aquí la misma clave que ya usan tus papás.
 const CLAVE = '1234';
 
+const COLS_P = ['ID', 'Fecha', 'Hora', 'N°', 'Lugar', 'Detalle', 'Total', 'Estado', 'Items'];
 const COLS = ['ID', 'Fecha', 'Hora', 'N°', 'Lugar', 'Detalle', 'Total', 'Medio', 'Comisión', 'Cobrado', 'Paga con', 'Vuelto', 'Estado', 'Items'];
 
 function doPost(e) {
   let d = {};
   try { d = JSON.parse(e.postData.contents); } catch (err) { return responder({ ok: false, error: 'datos' }); }
+  // Los clientes mandan su pedido sin clave; todo lo demás pide la clave.
+  if (d.accion === 'pedido') return guardarPedido(d.pedido || {});
   if (String(d.clave || '') !== CLAVE) return responder({ ok: false, error: 'clave' });
   if (d.accion === 'probar') return responder({ ok: true });
   if (d.accion === 'guardar') return guardarCarta(d);
   if (d.accion === 'venta') return guardarVenta(d.venta || {});
   if (d.accion === 'ventas') return leerVentas(String(d.fecha || ''));
   if (d.accion === 'anular') return anularVenta(String(d.id || ''));
+  if (d.accion === 'pedidos') return leerPedidos();
+  if (d.accion === 'atendido') return marcarPedido(String(d.id || ''));
   return responder({ ok: false, error: 'accion' });
 }
 
@@ -92,6 +98,78 @@ function anularVenta(id) {
     const i = ids.lastIndexOf(id);
     if (i < 0) return responder({ ok: false, error: 'no-existe' });
     h.getRange(i + 2, COLS.indexOf('Estado') + 1).setValue('ANULADA');
+    return responder({ ok: true });
+  });
+}
+
+function hojaPedidos() {
+  const libro = SpreadsheetApp.getActiveSpreadsheet();
+  let h = libro.getSheetByName('Pedidos');
+  if (!h) {
+    h = libro.insertSheet('Pedidos', libro.getSheets().length);
+    h.getRange(1, 1, 1, COLS_P.length).setValues([COLS_P]).setFontWeight('bold');
+    h.setFrozenRows(1);
+    h.getRange('A:E').setNumberFormat('@');
+  }
+  return h;
+}
+
+function hoyLima(formato) {
+  return Utilities.formatDate(new Date(), 'America/Lima', formato);
+}
+
+function guardarPedido(p) {
+  const id = String(p.id || '').slice(0, 40);
+  const items = Array.isArray(p.items) ? p.items.slice(0, 40).map(x => ({
+    n: String(x.n || '').slice(0, 120), q: Math.max(1, Math.min(99, Math.round(Number(x.q) || 1))),
+    p: isNaN(Number(x.p)) ? 0 : Number(x.p), e: String(x.e || '').slice(0, 60)
+  })).filter(x => x.n) : [];
+  if (!id || !items.length) return responder({ ok: false, error: 'datos' });
+  return conCandado(() => {
+    const h = hojaPedidos();
+    const ultima = h.getLastRow();
+    if (ultima > 1) {
+      const desde = Math.max(2, ultima - 300);
+      const filas = h.getRange(desde, 1, ultima - desde + 1, 2).getDisplayValues();
+      if (filas.some(r => r[0] === id)) return responder({ ok: true, repetido: true });
+      // freno simple contra abusos: máximo 60 pedidos por día
+      const hoy = hoyLima('yyyy-MM-dd');
+      if (filas.filter(r => r[1] === hoy).length >= 60) return responder({ ok: false, error: 'limite' });
+    }
+    h.appendRow([
+      id, hoyLima('yyyy-MM-dd'), hoyLima('HH:mm'), String(p.num || '').slice(0, 10),
+      String(p.lugar || '').slice(0, 40), String(p.texto || '').slice(0, 1500),
+      isNaN(Number(p.total)) ? '' : Number(p.total), 'NUEVO', JSON.stringify(items).slice(0, 4000)
+    ]);
+    return responder({ ok: true });
+  });
+}
+
+function leerPedidos() {
+  const h = hojaPedidos();
+  const ultima = h.getLastRow();
+  if (ultima < 2) return responder({ ok: true, pedidos: [] });
+  const desde = Math.max(2, ultima - 200);
+  const hoy = hoyLima('yyyy-MM-dd');
+  const filas = h.getRange(desde, 1, ultima - desde + 1, COLS_P.length).getDisplayValues();
+  const pedidos = filas.filter(r => r[1] === hoy && r[7] === 'NUEVO').map(r => {
+    const o = {};
+    COLS_P.forEach((c, i) => { o[c] = r[i]; });
+    return o;
+  });
+  return responder({ ok: true, pedidos });
+}
+
+function marcarPedido(id) {
+  if (!id) return responder({ ok: false, error: 'datos' });
+  return conCandado(() => {
+    const h = hojaPedidos();
+    const ultima = h.getLastRow();
+    if (ultima < 2) return responder({ ok: false, error: 'no-existe' });
+    const ids = h.getRange(2, 1, ultima - 1, 1).getDisplayValues().map(r => r[0]);
+    const i = ids.lastIndexOf(id);
+    if (i < 0) return responder({ ok: false, error: 'no-existe' });
+    h.getRange(i + 2, COLS_P.indexOf('Estado') + 1).setValue('ATENDIDO');
     return responder({ ok: true });
   });
 }

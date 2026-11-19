@@ -50,6 +50,13 @@ button{cursor:pointer}
 @media (prefers-reduced-motion:reduce){.mic.oyendo{animation:none}}
 .oido{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:10px 14px;font-size:18px;margin:0}
 .oido b{color:var(--muted);font-size:14px;letter-spacing:1px;text-transform:uppercase;display:block}
+.pedido-nuevo{background:var(--oro-soft);border:3px solid var(--oro);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;animation:llama 1.2s ease-in-out 3}
+.pedido-nuevo h2{font-size:26px}
+.pedido-nuevo .det{white-space:pre-line;margin:0;font-size:18px;line-height:1.35}
+.pedido-nuevo .bts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.activar{width:100%;min-height:56px;border:3px dashed var(--brasa);background:var(--paper);color:var(--brasa);border-radius:14px;font-weight:700;font-size:18px;cursor:pointer}
+@keyframes llama{50%{box-shadow:0 0 0 6px var(--oro)}}
+@media (prefers-reduced-motion: reduce){.pedido-nuevo{animation:none}}
 .aviso{background:var(--warn-bg);border-radius:12px;padding:10px 14px;font-weight:600;font-size:17px;margin:0}
 .caja{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
 .caja h2{font-size:24px}
@@ -353,7 +360,7 @@ details.agregar[open] summary::after{content:"–"}
     const msg = el('p', {class:'aviso', hidden:true});
     const entrar = async () => {
       st.clave = inp.value.trim(); msg.hidden = false; msg.textContent = 'Revisando…';
-      try{ const r = await llamar({accion:'probar'}); if(r.ok){ st.ok = true; guardarLS('caja-clave', st.clave); subirPendientes(); pintar(); } else msg.textContent = 'Esa clave no es. Es la misma de Editar carta.'; }
+      try{ const r = await llamar({accion:'probar'}); if(r.ok){ st.ok = true; guardarLS('caja-clave', st.clave); subirPendientes(); pintar(); revisarPedidos(); } else msg.textContent = 'Esa clave no es. Es la misma de Editar carta.'; }
       catch(e){ msg.textContent = 'No hay conexión con la hoja. Revisa el internet.'; }
     };
     inp.addEventListener('keydown', e => { if(e.key === 'Enter') entrar(); });
@@ -497,6 +504,80 @@ details.agregar[open] summary::after{content:"–"}
     return out;
   }
 
+  /* ---------- pedidos que llegan de las mesas ---------- */
+  st.pedidos = [];
+  const OIDOS = new Set(leerLS('caja-oidos', []));
+  let sonidoOk = false, audio = null, pantalla = null, revisando = false, ultimoRecordatorio = 0;
+  function activarSonido(){
+    if(sonidoOk) return; sonidoOk = true;
+    try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); }catch(e){}
+    try{ audio = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){}
+    pedirPantalla(); pintarPedidos();
+  }
+  document.addEventListener('pointerdown', activarSonido);
+  function pedirPantalla(){ try{ if('wakeLock' in navigator && document.visibilityState === 'visible') navigator.wakeLock.request('screen').then(l => { pantalla = l; }).catch(() => {}); }catch(e){} }
+  document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible'){ pedirPantalla(); revisarPedidos(); } });
+  function campana(){
+    if(!audio) return;
+    try{ audio.resume(); [0, 0.22, 0.44].forEach((t, i) => { const o = audio.createOscillator(), g = audio.createGain(); o.type = 'sine'; o.frequency.value = [880, 1175, 1568][i];
+      g.gain.setValueAtTime(0.0001, audio.currentTime + t); g.gain.exponentialRampToValueAtTime(0.5, audio.currentTime + t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + t + 0.35);
+      o.connect(g).connect(audio.destination); o.start(audio.currentTime + t); o.stop(audio.currentTime + t + 0.4); }); }catch(e){}
+  }
+  function hablar(t){ try{ if(!window.speechSynthesis) return; const u = new SpeechSynthesisUtterance(t); u.lang = 'es-PE'; u.rate = 0.95; speechSynthesis.speak(u); }catch(e){} }
+  const nombreHablado = n => String(n).replace(/^\d+\s+(?=[a-záéíóú])/i, '').replace(/\(.*?\)/g, '').replace(/1\/4/g, 'cuarto').replace(/1\/2/g, 'medio').replace(/1\/8/g, 'octavo').replace(/1\.5 ?L/gi, 'litro y medio');
+  function anunciar(p){
+    const partes = p.items.map(x => x.q + ' ' + nombreHablado(x.n) + (x.e ? ', con ' + x.e : ''));
+    hablar('Nuevo pedido. ' + p.lugar + '. ' + partes.join('. ') + '.');
+  }
+  async function revisarPedidos(){
+    if(!st.ok || revisando) return; revisando = true;
+    try{
+      const r = await llamar({accion:'pedidos'});
+      if(r.ok){
+        const lista = (r.pedidos || []).map(x => ({id:x.ID, hora:x.Hora, num:x['N°'], lugar:x.Lugar, detalle:x.Detalle, total:num(x.Total),
+          items:(() => { try{ return JSON.parse(x.Items || '[]'); }catch(e){ return []; } })()}));
+        const nuevos = lista.filter(p => !OIDOS.has(p.id));
+        const cambio = lista.map(p => p.id).join() !== st.pedidos.map(p => p.id).join();
+        st.pedidos = lista;
+        if(nuevos.length){ nuevos.forEach(p => OIDOS.add(p.id)); guardarLS('caja-oidos', [...OIDOS].slice(-300)); campana(); nuevos.forEach(anunciar); ultimoRecordatorio = Date.now(); }
+        else if(lista.length && Date.now() - ultimoRecordatorio > 120000){ ultimoRecordatorio = Date.now(); campana(); hablar(lista.length === 1 ? 'Hay un pedido sin atender. ' + lista[0].lugar + '.' : 'Hay ' + lista.length + ' pedidos sin atender.'); }
+        if(cambio) pintarPedidos();
+      }
+    }catch(e){}
+    revisando = false;
+  }
+  setInterval(revisarPedidos, 10000);
+  async function atendido(p){
+    st.pedidos = st.pedidos.filter(x => x.id !== p.id); pintarPedidos();
+    try{ await llamar({accion:'atendido', id:p.id}); }catch(e){ toast('Sin internet: se marcará cuando vuelva la señal.'); }
+  }
+  function pasarAVenta(p){
+    p.items.forEach(x => {
+      const it = ITEMS.find(i => norm(i.n) === norm(x.n)) || {id:'p-' + norm(x.n), n:x.n, p:num(x.p)};
+      sumar(it, x.q);
+    });
+    if(p.lugar) st.lugar = p.lugar;
+    st.vista = 'venta'; location.hash = '';
+    atendido(p); pintar(); window.scrollTo(0, 0);
+    toast('Pedido pasado a la venta. Revisa y cobra.');
+  }
+  function vistaPedidos(){
+    const out = [];
+    if(!sonidoOk) out.push(el('button', {type:'button', class:'activar', onclick:activarSonido}, 'Toca aquí para activar los avisos de pedidos'));
+    st.pedidos.forEach(p => {
+      const lineas = String(p.detalle || '').split('\n').filter(l => l.trim() && !/^PEDIDO /.test(l)).join('\n');
+      out.push(el('section', {class:'pedido-nuevo', 'aria-live':'polite'},
+        el('h2', {text:'Pedido nuevo · ' + p.lugar}),
+        el('small', {style:'color:var(--muted);font-weight:700', text:'N.° ' + p.num + ' · ' + p.hora}),
+        el('p', {class:'det', text:lineas}),
+        el('div', {class:'bts'},
+          el('button', {type:'button', class:'btn verde', onclick:() => pasarAVenta(p)}, 'Pasar a la venta'),
+          el('button', {type:'button', class:'btn claro', onclick:() => atendido(p)}, 'Ya lo atendí'))));
+    });
+    return out;
+  }
+  function pintarPedidos(){ const box = document.getElementById('pedidos-box'); if(!box) return; box.innerHTML = ''; vistaPedidos().forEach(x => box.appendChild(x)); }
+
   function pintar(){
     const y = window.scrollY; app.innerHTML = '';
     app.appendChild(el('div', {class:'top'}, el('h1', {}, 'Caja', el('small', {text:'El Pollo Chelero'})),
@@ -505,6 +586,7 @@ details.agregar[open] summary::after{content:"–"}
     app.appendChild(el('div', {class:'tabs'},
       el('button', {type:'button', class:'tab', 'aria-pressed':String(st.vista === 'venta'), onclick:() => { st.vista = 'venta'; location.hash = ''; pintar(); }}, 'Nueva venta'),
       el('button', {type:'button', class:'tab', 'aria-pressed':String(st.vista === 'hoy'), onclick:() => { st.vista = 'hoy'; location.hash = 'hoy'; st.ventas = null; pintar(); }}, 'Ventas del día')));
+    const box = el('div', {id:'pedidos-box', style:'display:flex;flex-direction:column;gap:12px'}); app.appendChild(box); pintarPedidos();
     (st.vista === 'hoy' ? vistaHoy() : vistaVenta()).forEach(x => app.appendChild(x));
     window.scrollTo(0, y);
   }
@@ -514,7 +596,7 @@ details.agregar[open] summary::after{content:"–"}
   window.__entender = t => { const r = entender(t); return {items:r.items.map(x => x.q + ' x ' + x.it.n), noEntendi:r.noEntendi, lugar:r.lugar, medio:r.medio, pagaCon:r.pagaCon, envio:r.envio}; };
   cargar().catch(() => toast('No se pudo cargar la carta. Revisa el internet.')).then(async () => {
     if(st.clave){ try{ const r = await llamar({accion:'probar'}); st.ok = !!r.ok; if(st.ok) subirPendientes(); }catch(e){ st.ok = true; } }
-    pintar();
+    pintar(); revisarPedidos();
   });
 })();
 </script>
