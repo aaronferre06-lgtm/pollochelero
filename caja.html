@@ -533,6 +533,10 @@ details.agregar[open] summary::after{content:"–"}
     if(!st.ok || revisando) return; revisando = true;
     try{
       const r = await llamar({accion:'pedidos'});
+      const antes = st.estadoPedidos;
+      st.estadoPedidos = r.ok ? 'ok' : (r.error === 'accion' ? 'sin-codigo' : 'error');
+      st.revisadoA = horaAhora();
+      if(antes !== st.estadoPedidos) pintarPedidos(); else { const e = document.getElementById('estado-pedidos'); if(e) e.textContent = textoEstado(); }
       if(r.ok){
         const lista = (r.pedidos || []).map(x => ({id:x.ID, hora:x.Hora, num:x['N°'], lugar:x.Lugar, detalle:x.Detalle, total:num(x.Total),
           items:(() => { try{ return JSON.parse(x.Items || '[]'); }catch(e){ return []; } })()}));
@@ -543,7 +547,7 @@ details.agregar[open] summary::after{content:"–"}
         else if(lista.length && Date.now() - ultimoRecordatorio > 120000){ ultimoRecordatorio = Date.now(); campana(); hablar(lista.length === 1 ? 'Hay un pedido sin atender. ' + lista[0].lugar + '.' : 'Hay ' + lista.length + ' pedidos sin atender.'); }
         if(cambio) pintarPedidos();
       }
-    }catch(e){}
+    }catch(e){ if(st.estadoPedidos !== 'sin-red'){ st.estadoPedidos = 'sin-red'; pintarPedidos(); } }
     revisando = false;
   }
   setInterval(revisarPedidos, 10000);
@@ -561,8 +565,16 @@ details.agregar[open] summary::after{content:"–"}
     atendido(p); pintar(); window.scrollTo(0, 0);
     toast('Pedido pasado a la venta. Revisa y cobra.');
   }
+  function textoEstado(){
+    return st.estadoPedidos === 'ok' ? (sonidoOk ? 'Avisos de pedidos: activos (revisado ' + st.revisadoA + ')' : 'Avisos de pedidos: falta tocar la pantalla')
+      : st.estadoPedidos === 'sin-codigo' ? 'Avisos de pedidos: NO funcionan. Falta actualizar el código de la hoja (Apps Script, Nueva versión).'
+      : st.estadoPedidos === 'sin-red' ? 'Avisos de pedidos: sin internet, reintentando…'
+      : st.estadoPedidos === 'error' ? 'Avisos de pedidos: la hoja respondió con error. Revisa la clave.' : 'Avisos de pedidos: revisando…';
+  }
   function vistaPedidos(){
     const out = [];
+    const malo = st.estadoPedidos && st.estadoPedidos !== 'ok';
+    out.push(el('p', {id:'estado-pedidos', class:malo ? 'aviso' : '', style:malo ? '' : 'margin:0;font-size:15px;font-weight:700;color:var(--ok)', text:textoEstado()}));
     if(!sonidoOk) out.push(el('button', {type:'button', class:'activar', onclick:activarSonido}, 'Toca aquí para activar los avisos de pedidos'));
     st.pedidos.forEach(p => {
       const lineas = String(p.detalle || '').split('\n').filter(l => l.trim() && !/^PEDIDO /.test(l)).join('\n');
