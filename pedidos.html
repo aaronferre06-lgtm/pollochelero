@@ -146,6 +146,13 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
 .pago-nom,.pago-nota{margin:0;font-size:17px}
 .pago-nota{color:var(--muted)}
 .pago-qr{display:flex;align-items:center;gap:12px}
+.pago-izi{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.pago-izi img{width:min(240px,70vw);height:auto;aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:#fff;padding:4px}
+.pago-pasos{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:17px}
+.pago-botones{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pago-botones .btn{min-height:52px;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.pago-otro summary{cursor:pointer;font-weight:700;color:var(--muted);font-size:16px;padding:4px 0}
+.pago-otro[open]{display:flex;flex-direction:column;gap:8px}
 .pago-qr img{width:120px;height:120px;flex:none;border-radius:8px;border:1px solid var(--line);background:#fff}
 .pago-qr span{font-size:16px;color:var(--muted);font-weight:600}
 .ayuda-btn{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:6;display:flex;align-items:center;gap:8px;border:0;border-radius:30px;padding:12px 18px;background:var(--ink);color:var(--bg);font-weight:700;font-size:18px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
@@ -378,8 +385,15 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
     try{ navigator.clipboard.writeText(numero).then(() => { if(android) toast('Número copiado. En Yape pégalo' + (total ? ' y pon ' + sol(total) : '') + '.'); abrir(); }, abrir); }
     catch(e){ abrir(); }
   }
+  function abrirYape(){
+    if(/android/i.test(navigator.userAgent)) location.href = 'intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=' + YAPE_APP +
+      ';S.browser_fallback_url=' + encodeURIComponent('https://play.google.com/store/apps/details?id=' + YAPE_APP) + ';end';
+    else toast('Abre tu Yape y toca Escanear QR.');
+  }
   function cajaPago(total){
-    const P = PAGO(); if(!P.yape) return null;
+    const P = PAGO(), Z = P.izipay;
+    if(Z && Z.qr) return cajaIzipay(total, P, Z);
+    if(!P.yape) return null;
     const conTarjeta = total && P.tarjeta ? total * (1 + P.tarjeta/100) : 0;
     return el('div', {class:'pago'},
       el('div', {class:'pago-cab'}, el('b', {text:'Paga con Yape o Plin'}), total ? el('span', {class:'monto', text:sol(total) + (st.donde === 'delivery' ? ' + delivery' : '')}) : null),
@@ -389,6 +403,30 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
         el('button', {type:'button', class:'btn claro', onclick:ev => copiar(String(P.yape).replace(/\D/g,''), ev.currentTarget, 'Número copiado')}, 'Copiar número')),
       P.nombre ? el('p', {class:'pago-nom'}, 'Te sale a nombre de ', el('b', {text:P.nombre})) : null,
       P.qr ? el('div', {class:'pago-qr'}, el('img', {src:P.qr, alt:'QR de Yape de El Pollo Chelero'}), el('span', {text:'¿Pagas desde otro celular? Escanea este QR con Yape.'})) : null,
+      P.tarjeta ? el('p', {class:'pago-nota', text:'Con tarjeta se cobra ' + P.tarjeta + ' % más' + (conTarjeta ? ': ' + sol(conTarjeta) + '.' : '.')}) : null,
+      el('p', {class:'pago-nota', text:st.donde === 'mesa' ? 'Puedes pagar ahora o al terminar de comer.' : 'Después de pagar, manda la captura por el mismo WhatsApp.'}));
+  }
+
+  function cajaIzipay(total, P, Z){
+    const conTarjeta = total && P.tarjeta ? total * (1 + P.tarjeta/100) : 0;
+    const otro = P.yape ? el('details', {class:'pago-otro'}, el('summary', {}, '¿No te funciona el QR?'),
+      el('p', {class:'pago-nota', text:'También puedes yapear al número:'}),
+      el('div', {class:'pago-num'}, el('div', {}, el('small', {text:'Al número'}), el('span', {class:'cel', text:celBonito(P.yape)})),
+        el('button', {type:'button', class:'btn claro', onclick:ev => copiar(String(P.yape).replace(/\D/g,''), ev.currentTarget, 'Número copiado')}, 'Copiar número')),
+      P.nombre ? el('p', {class:'pago-nom'}, 'Te sale a nombre de ', el('b', {text:P.nombre})) : null) : null;
+    return el('div', {class:'pago'},
+      el('div', {class:'pago-cab'}, el('b', {text:'Paga con Yape, Plin u otra billetera'}), total ? el('span', {class:'monto', text:sol(total) + (st.donde === 'delivery' ? ' + delivery' : '')}) : null),
+      el('div', {class:'pago-izi'}, el('img', {src:Z.qr, alt:'QR de pago de El Pollo Chelero'}),
+        Z.nombre ? el('p', {class:'pago-nom'}, 'Te sale a nombre de ', el('b', {text:Z.nombre})) : null),
+      el('ol', {class:'pago-pasos'},
+        el('li', {}, el('b', {text:'Guarda el QR'}), ' con el botón de abajo.'),
+        el('li', {}, 'Abre tu Yape o Plin, toca ', el('b', {text:'Escanear'}), ' y luego el ícono de la foto para elegir el QR guardado.'),
+        el('li', {}, total ? ['Escribe ', el('b', {text:sol(total)}), (st.donde === 'delivery' ? ' más el delivery' : ''), ' y paga.'] : 'Escribe el monto de tu pedido y paga.')),
+      el('div', {class:'pago-botones'},
+        el('a', {class:'btn claro', href:Z.png || Z.qr, download:'QR-El-Pollo-Chelero.png'}, 'Guardar QR'),
+        el('button', {type:'button', class:'btn verde', onclick:abrirYape}, 'Abrir Yape')),
+      el('p', {class:'pago-nota', text:'Si pagas desde otro celular, solo escanea el QR de la pantalla.'}),
+      otro,
       P.tarjeta ? el('p', {class:'pago-nota', text:'Con tarjeta se cobra ' + P.tarjeta + ' % más' + (conTarjeta ? ': ' + sol(conTarjeta) + '.' : '.')}) : null,
       el('p', {class:'pago-nota', text:st.donde === 'mesa' ? 'Puedes pagar ahora o al terminar de comer.' : 'Después de pagar, manda la captura por el mismo WhatsApp.'}));
   }
@@ -493,7 +531,7 @@ label.campo small{font-weight:500;color:var(--muted);font-size:16px}
           preg.append(el('b', {text:'¿En qué mesa estás?'}), ms);
         }
         hoja.appendChild(preg);
-        if(PAGO().yape) hoja.appendChild(el('p', {class:'mini-pago', text:'Pagas con Yape, Plin' + (PAGO().tarjeta ? ' o tarjeta (+' + PAGO().tarjeta + ' %)' : '') + '. Al enviar te mostramos el número y el monto.'}));
+        if(PAGO().yape) hoja.appendChild(el('p', {class:'mini-pago', text:'Pagas con Yape, Plin' + (PAGO().tarjeta ? ' o tarjeta (+' + PAGO().tarjeta + ' %)' : '') + '. Al enviar te mostramos el QR y el monto.'}));
         let enlace = null;
         const nom = el('input', {type:'text', id:'f-nombre', autocomplete:'given-name', placeholder:'Ej.: Rosa'}); nom.value = st.nombre;
         nom.addEventListener('input', () => { st.nombre = nom.value; });
