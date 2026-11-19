@@ -207,12 +207,19 @@ details.agregar[open] summary::after{content:"–"}
   }
   function entender(texto){
     let t = ' ' + norm(texto).replace(/(\d)\s*\/\s*(\d)/g, '$1/$2') + ' ';
-    const out = {items:[], noEntendi:[], lugar:null, medio:null, pagaCon:null};
+    const out = {items:[], noEntendi:[], lugar:null, medio:null, pagaCon:null, envio:null};
     // lugar
     let m = t.match(/\bmesa\s+(?:numero\s+)?(\d{1,2}|uno|una|dos|tres|cuatro|cinco|seis|siete|ocho)\b/);
     if(m){ out.lugar = 'Mesa ' + (NUM[m[1]] || +m[1]); t = t.replace(m[0], ' '); }
     if(/\b(para llevar|llevar)\b/.test(t)){ out.lugar = 'Para llevar'; t = t.replace(/\b(para llevar|llevar)\b/g, ' '); }
-    if(/\b(delivery|deliveri|domicilio)\b/.test(t)){ out.lugar = 'Delivery'; t = t.replace(/\b(para delivery|delivery|deliveri|a domicilio|domicilio)\b/g, ' '); }
+    // delivery: el dictado lo escribe de mil formas (delivery, delibery, de liberi...)
+    const DELI = '(?:de ?l[ie][bv]e?r[iy]e?|deli ?very|domicilio|envio|movilidad)';
+    const CANT = '(\\d{1,2}(?:[.,]\\d{1,2})?|uno|un|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)';
+    let em = t.match(new RegExp('\\b' + DELI + '\\s+(?:de\\s+|a\\s+|cuesta\\s+|son\\s+|es\\s+)?' + CANT + '\\s+(?:soles|sol|lucas)\\b'))
+          || t.match(new RegExp('\\b' + CANT + '\\s+(?:soles|sol|lucas)\\s+(?:de|del|por|por el|el)?\\s*' + DELI + '\\b'));
+    if(em){ out.envio = NUM[em[1]] != null ? NUM[em[1]] : num(em[1]); out.lugar = 'Delivery'; t = t.replace(em[0], ' '); }
+    const dre = new RegExp('\\b(?:para |por |a |al )?' + DELI + '\\b', 'g');
+    if(dre.test(t)){ out.lugar = 'Delivery'; t = t.replace(dre, ' '); }
     // pago
     const pm = t.match(/\b(?:paga|pago|pagara|pagan|pagaron|billete de|con billete de)\s+(?:con\s+)?(?:un billete de\s+)?(\d{2,3}|veinte|cincuenta|cien|doscientos)\b/);
     if(pm){ out.pagaCon = NUM[pm[1]] || +pm[1]; out.medio = 'Efectivo'; t = t.replace(pm[0], ' '); }
@@ -242,9 +249,11 @@ details.agregar[open] summary::after{content:"–"}
   }
 
   /* ---------- estado ---------- */
-  const st = {vista:'venta', clave:leerLS('caja-clave', ''), ok:false, ticket:[], lugar:'', medio:'', pagaCon:'', oido:'', noEntendi:[], oyendo:false, voz:leerLS('caja-voz', true), fecha:hoyISO(), ventas:null, cargandoVentas:false};
+  const st = {envio:'', dir:'', vista:'venta', clave:leerLS('caja-clave', ''), ok:false, ticket:[], lugar:'', medio:'', pagaCon:'', oido:'', noEntendi:[], oyendo:false, voz:leerLS('caja-voz', true), fecha:hoyISO(), ventas:null, cargandoVentas:false};
   function totalTicket(){ return st.ticket.reduce((s, l) => s + l.q * l.it.p, 0); }
-  function comision(){ return st.medio === 'Tarjeta' ? Math.round(totalTicket() * (num((CFG.pago||{}).tarjeta) / 100) * 100) / 100 : 0; }
+  function envio(){ return st.lugar === 'Delivery' ? num(st.envio) : 0; }
+  function totalCobro(){ return totalTicket() + envio(); }
+  function comision(){ return st.medio === 'Tarjeta' ? Math.round(totalCobro() * (num((CFG.pago||{}).tarjeta) / 100) * 100) / 100 : 0; }
   function sumar(it, q){ const l = st.ticket.find(x => x.it.id === it.id); if(l){ l.q += q; if(l.q <= 0) st.ticket.splice(st.ticket.indexOf(l), 1); } else if(q > 0) st.ticket.push({it, q}); }
 
   /* ---------- hablar con la hoja ---------- */
@@ -295,11 +304,14 @@ details.agregar[open] summary::after{content:"–"}
     if(mejor.lugar) st.lugar = mejor.lugar;
     if(mejor.medio) st.medio = mejor.medio;
     if(mejor.pagaCon) st.pagaCon = String(mejor.pagaCon);
+    if(mejor.envio != null) st.envio = String(mejor.envio);
     st.noEntendi = mejor.noEntendi;
     st.oido = texto;
     if(mejor.items.length){
       const partes = mejor.items.map(x => x.q + ' ' + x.it.n.replace(/\(.*?\)/g, ''));
-      decir('Anotado: ' + partes.join(', ') + '. Total ' + solHablado(totalTicket()) + '.');
+      decir('Anotado: ' + partes.join(', ') + (envio() ? '. Más ' + solHablado(envio()) + ' de delivery' : '') + '. Total ' + solHablado(totalCobro()) + '.');
+    } else if(mejor.lugar || mejor.medio || mejor.envio != null){
+      decir('Anotado' + (mejor.lugar ? ': ' + mejor.lugar : '') + (envio() ? ', ' + solHablado(envio()) + ' de delivery' : '') + (mejor.medio ? ', paga con ' + mejor.medio : '') + '.');
     } else decir('No entendí el pedido. Repite o usa los botones.');
   }
 
@@ -307,19 +319,21 @@ details.agregar[open] summary::after{content:"–"}
   async function guardarVenta(){
     if(!st.ticket.length){ toast('Agrega al menos un plato.'); return; }
     if(!st.medio){ toast('Elige cómo pagó: efectivo, Yape, Plin o tarjeta.'); return; }
-    const total = totalTicket(), com = comision();
+    if(st.lugar === 'Delivery' && st.envio === ''){ toast('Pon cuánto se cobra de delivery (o S/ 0 si es gratis).'); document.getElementById('f-envio')?.focus(); return; }
+    const total = totalCobro(), com = comision();
     const pagaCon = st.medio === 'Efectivo' ? num(st.pagaCon) : 0;
     if(st.medio === 'Efectivo' && pagaCon && pagaCon < total){ toast('El monto con que paga es menor al total.'); return; }
     const hoy = hoyISO(), cuenta = leerLS('caja-num', {}), n = (cuenta[hoy] || 0) + 1; cuenta[hoy] = n; guardarLS('caja-num', {[hoy]:n});
     const v = {
       id:Date.now().toString(36) + Math.random().toString(36).slice(2, 6), fecha:hoy, hora:horaAhora(), num:n,
-      lugar:st.lugar || 'Sin indicar', detalle:st.ticket.map(l => l.q + ' x ' + l.it.n).join('; '),
+      lugar:st.lugar === 'Delivery' && st.dir.trim() ? 'Delivery: ' + st.dir.trim() : (st.lugar || 'Sin indicar'),
+      detalle:st.ticket.map(l => l.q + ' x ' + l.it.n).join('; ') + (envio() ? '; Delivery ' + sol(envio()) : ''),
       total, medio:st.medio, comision:com, cobrado:total + com, pagaCon:pagaCon || '', vuelto:pagaCon ? Math.round((pagaCon - total) * 100) / 100 : '',
       items:st.ticket.map(l => ({n:l.it.n, q:l.q, p:l.it.p}))
     };
     const pend = leerLS(PEND, []); pend.push(v); guardarLS(PEND, pend);
     const hoyLocal = leerLS('caja-hoy', {}); const lista = hoyLocal[hoy] || []; lista.push(v); guardarLS('caja-hoy', {[hoy]:lista});
-    st.ticket = []; st.lugar = ''; st.medio = ''; st.pagaCon = ''; st.oido = ''; st.noEntendi = [];
+    st.ticket = []; st.lugar = ''; st.medio = ''; st.pagaCon = ''; st.oido = ''; st.noEntendi = []; st.envio = ''; st.dir = '';
     decir('Venta guardada. ' + solHablado(v.cobrado) + (v.vuelto ? '. Vuelto ' + solHablado(v.vuelto) : '') + '.');
     toast('Venta N.° ' + n + ' guardada: ' + sol(v.cobrado));
     st.ventas = null; pintar(); window.scrollTo(0, 0);
@@ -373,10 +387,21 @@ details.agregar[open] summary::after{content:"–"}
 
     const lug = el('section', {class:'caja'}, el('h2', {text:'¿Dónde?'}));
     const lugares = []; for(let i = 1; i <= (CFG.mesas || 6); i++) lugares.push('Mesa ' + i); lugares.push('Para llevar', 'Delivery');
-    lug.appendChild(el('div', {class:'lugares'}, lugares.map(x => el('button', {type:'button', class:'op', 'aria-pressed':String(st.lugar === x), onclick:() => { st.lugar = st.lugar === x ? '' : x; pintar(); }}, x))));
+    lug.appendChild(el('div', {class:'lugares'}, lugares.map(x => el('button', {type:'button', class:'op', 'aria-pressed':String(st.lugar === x), onclick:() => { st.lugar = st.lugar === x ? '' : x; if(st.lugar !== 'Delivery'){ st.envio = ''; st.dir = ''; } pintar(); }}, x))));
+    if(st.lugar === 'Delivery'){
+      const ie = el('input', {type:'text', id:'f-envio', inputmode:'decimal', placeholder:'S/ 0.00'}); ie.value = st.envio;
+      const id = el('input', {type:'text', id:'f-dir', autocomplete:'off', placeholder:'Ej.: Urb. Buenos Aires, Mz B lote 4'}); id.value = st.dir;
+      const actualizar = () => { const b = document.querySelector('.barra .tot b'); if(b) b.textContent = sol(totalCobro() + comision()); };
+      ie.addEventListener('input', () => { st.envio = ie.value; actualizar(); });
+      ie.addEventListener('change', pintar);
+      id.addEventListener('input', () => { st.dir = id.value; });
+      lug.append(el('label', {class:'campo', for:'f-envio'}, '¿Cuánto se cobra de delivery?', ie),
+        el('div', {class:'pagocon'}, [2, 3, 4, 5].map(v => el('button', {type:'button', class:'op', 'aria-pressed':String(num(st.envio) === v && st.envio !== ''), onclick:() => { st.envio = String(v); pintar(); }}, 'S/ ' + v))),
+        el('label', {class:'campo', for:'f-dir'}, el('span', {}, 'Dirección ', el('small', {style:'font-weight:500;color:var(--muted)', text:'(opcional)'})), id));
+    }
     out.push(lug);
 
-    const total = totalTicket(), P = CFG.pago || {};
+    const total = totalCobro(), P = CFG.pago || {};
     const pago = el('section', {class:'caja'}, el('h2', {text:'¿Cómo paga?'}),
       el('div', {class:'medios'}, ['Efectivo', 'Yape', 'Plin', 'Tarjeta'].map(x => el('button', {type:'button', class:'op', 'aria-pressed':String(st.medio === x), onclick:() => { st.medio = st.medio === x ? '' : x; pintar(); }}, x))));
     if(st.medio === 'Efectivo'){
@@ -398,7 +423,7 @@ details.agregar[open] summary::after{content:"–"}
     out.push(pago);
 
     out.push(el('div', {class:'barra'}, el('div', {class:'in'},
-      el('div', {class:'tot'}, el('b', {text:sol(total + comision())}), el('span', {text:[st.lugar, st.medio].filter(Boolean).join(' · ') || 'Total'})),
+      el('div', {class:'tot'}, el('b', {text:sol(total + comision())}), el('span', {text:[st.lugar === 'Delivery' && envio() ? 'Delivery +' + sol(envio()) : st.lugar, st.medio].filter(Boolean).join(' · ') || 'Total'})),
       el('button', {type:'button', class:'btn verde', onclick:guardarVenta, disabled:!st.ticket.length || null}, 'Guardar venta'))));
     return out;
   }
@@ -474,7 +499,7 @@ details.agregar[open] summary::after{content:"–"}
 
   if(location.hash === '#hoy') st.vista = 'hoy';
   window.addEventListener('online', () => subirPendientes());
-  window.__entender = t => { const r = entender(t); return {items:r.items.map(x => x.q + ' x ' + x.it.n), noEntendi:r.noEntendi, lugar:r.lugar, medio:r.medio, pagaCon:r.pagaCon}; };
+  window.__entender = t => { const r = entender(t); return {items:r.items.map(x => x.q + ' x ' + x.it.n), noEntendi:r.noEntendi, lugar:r.lugar, medio:r.medio, pagaCon:r.pagaCon, envio:r.envio}; };
   cargar().catch(() => toast('No se pudo cargar la carta. Revisa el internet.')).then(async () => {
     if(st.clave){ try{ const r = await llamar({accion:'probar'}); st.ok = !!r.ok; if(st.ok) subirPendientes(); }catch(e){ st.ok = true; } }
     pintar();
