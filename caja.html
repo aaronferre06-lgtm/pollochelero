@@ -429,7 +429,7 @@ details.agregar[open] summary::after{content:"–"}
       const Z = typeof P.izipay === 'object' ? P.izipay : {};
       pago.appendChild(el('div', {class:'izi'}, el('span', {text:'Que el cliente escanee y pague'}), el('b', {text:sol(total)}),
         Z.qr ? el('img', {src:Z.qr, alt:'QR de pago de El Pollo Chelero'}) : null,
-        el('small', {text:'O cóbralo en el Izipay: Cobrar con QR y pon el monto.'})));
+        el('small', {text:'Escanea con Yape o Plin y escribe el monto.'})));
       pago.appendChild(el('p', {class:'vacio', text:'Guarda la venta cuando te llegue la notificación del pago.'}));
     }
     if((st.medio === 'Yape' || st.medio === 'Plin') && P.yape && !P.izipay){

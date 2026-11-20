@@ -3,9 +3,9 @@
   "mesas": 6,
   "pago": {
     "izipay": {
-      "qr": "izipay-qr.svg",
-      "png": "izipay-qr.png",
-      "nombre": "IZI*EL POLLO CHELERO"
+      "qr": "pago-qr.svg",
+      "png": "pago-qr.png",
+      "nombre": ""
     },
     "yape": "948739725",
     "nombre": "Eugenio Celso Ferre Aguilar",
